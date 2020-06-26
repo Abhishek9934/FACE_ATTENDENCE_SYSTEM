@@ -17,7 +17,7 @@ def index():
 
         if form.validate_on_submit():
             file_name = form.file.data
-            database(name=file_name.filename ,data =file_name.read())
+            database(name=file_name.filename,data =file_name.read())
             print("FILE : {}" .format(file_name.filename))
 
     return render_template("home.html" , form = form)
@@ -33,16 +33,18 @@ def database(name,data):
 
         host="localhost",
         user="root",
-        passwd="Abhishek@6204",
-        database="database"
+        passwd="",
+        database="students"
     )
 
     cursor = mydb.cursor()
     print(name)
     print("\n")
-    print(data)
+    print(type(data))
     # cursor.execute("""CREATE TABLE IF NOT EXISTS my_table (name TEXT,data BLOB) """)
-    cursor.execute("""INSERT INTO my_table (name, data) VALUES (name,data) """)
+    q = "INSERT INTO my_table (name, face) VALUES (%s,%s) "
+    val =(name,data)
+    cursor.execute(q,val)
     mydb.commit()
     cursor.close()
     mydb.close()
