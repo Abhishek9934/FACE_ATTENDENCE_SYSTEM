@@ -1,0 +1,29 @@
+{% include "header.html" %}
+
+<link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
+
+{% block body %}
+<div class="container">
+     <h1 class="jumbotron">Welcome to Attendence Management system</h1>
+</div>
+<div class="container">
+<!--<button type="button" class="btn">Basic</button>-->
+<!--<button type="button" class="btn btn-default">Default</button>-->
+<!--<button type="button" class="btn btn-primary">Primary</button>-->
+<!--<button type="button" class="btn btn-success"><a href="/my-link/">Click me</a></button>-->
+<!--<button type="button" class="btn btn-info">Info</button>-->
+<!--<button type="button" class="btn btn-warning">Warning</button>-->
+<!--<button type="button" class="btn btn-danger">Danger</button>-->
+<!--     <input type="button" id='script' name="scriptbutton" value=" Run Script " onclick="exec('python detect.py');">-->
+
+<!--<button type="button" class="btn btn-link">Link</button>-->
+ <form action="/my-link">
+            <input class="btn btn-info" type="submit" value="Click me" />
+ </form>
+
+
+</div>
+
+{% endblock %}
+<script type="text/javascript" src="{{url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
+<script type="text/javascript" src="{{url_for('static', filename = 'js/bootstrap.min.js')}}"></script>

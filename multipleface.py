@@ -9,147 +9,155 @@ import mysql.connector
 from datetime import date
 
 
-# bufferless VideoCapture
-class VideoCapture:
-    def __init__(self, name):
-        self.cap = cv2.VideoCapture(name)
-        self.q = queue.Queue()
-        t = threading.Thread(target=self._reader)
-        t.daemon = True
-        t.start()
+# # bufferless VideoCapture
+# class VideoCapture:
+#     def __init__(self, name):
+#         self.cap = cv2.VideoCapture(name)
+#         self.q = queue.Queue()
+#         t = threading.Thread(target=self._reader)
+#         t.daemon = True
+#         t.start()
+#
+#     # read frames as soon as they are available, keeping only most recent one
+#     def _reader(self):
+#         while True:
+#             ret, frame = self.cap.read()
+#             if not ret:
+#                 break
+#             if not self.q.empty():
+#                 try:
+#                     self.q.get_nowait()  # discard previous (unprocessed) frame
+#                 except queue.Empty:
+#                     pass
+#             self.q.put(frame)
+#
+#     def read(self):
+#         return self.q.get()
 
-    # read frames as soon as they are available, keeping only most recent one
-    def _reader(self):
-        while True:
-            ret, frame = self.cap.read()
-            if not ret:
-                break
-            if not self.q.empty():
-                try:
-                    self.q.get_nowait()  # discard previous (unprocessed) frame
-                except queue.Empty:
-                    pass
-            self.q.put(frame)
-
-    def read(self):
-        return self.q.get()
-
-
-video_capture = VideoCapture(0)
-
-
-def mark_attendence(face):
-    mydb = mysql.connector.connect(
-
-        host="localhost",
-        user="root",
-        passwd="Abhishek@6204",
-        database="database",
-        use_pure="True"
-    )
-    cursor = mydb.cursor()
-    today = date.today()
-    today = today.strftime("%b%d%Y")
-    print(today)
-    query = f"SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'student' AND COLUMN_NAME = %s; "
-    cursor.execute(query,(today,))
-    r = cursor.fetchall()
-    if (len(r)==0):
-        q= f"ALTER TABLE `database`.`student` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
-        cursor.execute(q)
+class VideoCamera(object):
+    def __init__(self):
+        self.video_capture = cv2.VideoCapture(0)
+        self.clf = test()
+        self.face_locations = []
+        self.face_encodings = []
+        # face_names = []
+        # self.process_this_frame = True
 
 
-    mark = f"UPDATE student SET {today}= 1 WHERE name=%s"
-    v= (face,)
-    cursor.execute(mark,v)
+    def __del__(self):
+        self.video_capture.release()
+
+    def mark_attendence(face):
+        mydb = mysql.connector.connect(
+
+            host="localhost",
+            user="root",
+            passwd="Abhishek@6204",
+            database="database",
+            use_pure="True"
+        )
+        cursor = mydb.cursor()
+        today = date.today()
+        today = today.strftime("%b%d%Y")
+        print(today)
+        query = f"SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'student' AND COLUMN_NAME = %s; "
+        cursor.execute(query,(today,))
+        r = cursor.fetchall()
+        if (len(r)==0):
+            q= f"ALTER TABLE `database`.`student` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
+            cursor.execute(q)
 
 
-    mydb.commit()
-    cursor.close()
-    mydb.close()
+        mark = f"UPDATE student SET {today}= 1 WHERE name=%s"
+        v= (face,)
+        cursor.execute(mark,v)
+
+
+        mydb.commit()
+        cursor.close()
+        mydb.close()
 
 
 
 
 
 
-# function to read image and resize it into desired shape
-def read_img(path):
-    img = cv2.imread(path)
-    (h, w) = img.shape[:2]
-    width = 500
-    ratio = width / float(w)
-    height = int(h * ratio)
-    return cv2.resize(img, (width, height))
+    # function to read image and resize it into desired shape
+    def read_img(path):
+        img = cv2.imread(path)
+        (h, w) = img.shape[:2]
+        width = 500
+        ratio = width / float(w)
+        height = int(h * ratio)
+        return cv2.resize(img, (width, height))
 
 
-def draw_rectangle(face_locations, face_names, frame):
-    for (top, right, bottom, left), name in zip(face_locations, face_names):
-        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+    def draw_rectangle(face_locations, face_names, frame):
+        for (top, right, bottom, left), name in zip(face_locations, face_names):
+            cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
-        # Draw a label with a name below the face
-        font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+            # Draw a label with a name below the face
+            font = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
-def draw_rectangle1(face_locations ,face_names ,frame):
-    for (top, right, bottom, left), name in zip(face_locations, face_names):
-        cv2.rectangle(frame, (left, top), (right, bottom), (0, 128, 0), 2)
+    def draw_rectangle1(face_locations ,face_names ,frame):
+        for (top, right, bottom, left), name in zip(face_locations, face_names):
+            cv2.rectangle(frame, (left, top), (right, bottom), (0, 128, 0), 2)
 
-        # Draw a label with a name below the face
-        font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+            # Draw a label with a name below the face
+            font = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
-
-clf = test()
-face_locations = []
-face_encodings = []
-# face_names = []
-process_this_frame = True
+    def get_frame(self):
 
 
-while True:
-    # Grab a single frame of video
-    frame = video_capture.read()
-    # Process every frame only one time
-    if process_this_frame:
-        # Find all the faces and face encodings in the current frame of video
-        face_locations = face_recognition.face_locations(frame)
-        face_encodings = face_recognition.face_encodings(frame, face_locations)
 
-        # Initialize an array for the name of the detected users
+        # while True:
+            # Grab a single frame of video
+        frame = self.video_capture.read()
+            # Process every frame only one time
+        # if self.process_this_frame:
+                # Find all the faces and face encodings in the current frame of video
+        self.face_locations = face_recognition.face_locations(frame)
+        self.face_encodings = face_recognition.face_encodings(frame, self.face_locations)
+
+            # Initialize an array for the name of the detected users
         face_names = []
-        for face_encoding in face_encodings:
+        for face_encoding in self.face_encodings:
             # See if the face is a match for the known face(s)
             # name= 'UNKNOWN'
-            name=clf.predict([face_encoding])
+            name=self.clf.predict([face_encoding])
             print (*name)
             if(name):
 
-                mark_attendence(str(*name))
+                self.mark_attendence(self,str(*name))
             face_names.append(*name)
 
-        # print(face_names)
+                # print(face_names)
 
-    process_this_frame = not process_this_frame
-    draw_rectangle(face_locations, face_names, frame)
+        # process_this_frame = not self.process_this_frame
+        self.draw_rectangle(self,self.face_locations, face_names, frame)
+        ret,jpeg = cv2.imencode('.jpg',frame)
+        return jpeg.tobytes()
 
-    # Display the results
-    window_width= 1200
-    window_height = 720
-    cv2.namedWindow('Resized Window', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('Resized Window', window_width, window_height)
-    # draw_rectangle1(face_locations , face_names ,frame)
 
-    # Display the resulting image
-    cv2.imshow('Resized Window', frame)
-    # cv2.waitKey(10)
+            # Display the results
+            # window_width= 1200
+            # window_height = 720
+            # cv2.namedWindow('Resized Window', cv2.WINDOW_NORMAL)
+            # cv2.resizeWindow('Resized Window', window_width, window_height)
+            # # draw_rectangle1(face_locations , face_names ,frame)
+            #
+            # # Display the resulting image
+            # cv2.imshow('Resized Window', frame)
+            # # cv2.waitKey(10)
+            #
+            # # Hit 'q' on the keyboard to quit!
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            #     break
 
-    # Hit 'q' on the keyboard to quit!
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# video_capture.release()
-cv2.destroyAllWindows()
+    # video_capture.release()
+    # cv2.destroyAllWindows()
 
 
 
