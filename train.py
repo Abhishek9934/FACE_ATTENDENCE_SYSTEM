@@ -27,12 +27,15 @@ def train():
 		database="database"
 	)
 	cursor = mydb.cursor()
+	print("Training data ......")
+	delq = "DELETE FROM new_table"
+	cursor.execute(delq)
+	mydb.commit()
 	known_dir = 'Known'
 	# temp()
 	# generates all the encodings for the knowm faces
 	for person in os.listdir(known_dir):
 		for file in os.listdir(known_dir+'/'+person):
-
 			img = read_img(known_dir +'/'+person+'/'+ file)
 			faceloc = face_recognition.face_locations(img)
 			if len(faceloc)==1:

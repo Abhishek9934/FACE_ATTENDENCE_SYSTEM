@@ -6,7 +6,7 @@ from sklearn import svm
 from train import train
 from train import test
 import mysql.connector
-from datetime import date
+from datetime import date,datetime
 
 
 # bufferless VideoCapture
@@ -49,7 +49,8 @@ def mark_attendence(face):
     )
     cursor = mydb.cursor()
     today = date.today()
-    today = today.strftime("%b%d%Y")
+    print(today)
+    # today = today.strftime("%b,%d,%Y")
     print(today)
     query = f"SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'student' AND COLUMN_NAME = %s; "
     cursor.execute(query,(today,))
@@ -59,7 +60,7 @@ def mark_attendence(face):
         cursor.execute(q)
 
 
-    mark = f"UPDATE student SET {today}= 1 WHERE name=%s"
+    mark = f"UPDATE student SET `{today}`= 1 WHERE name=%s"
     v= (face,)
     cursor.execute(mark,v)
 
@@ -89,7 +90,9 @@ def draw_rectangle(face_locations, face_names, frame):
 
         # Draw a label with a name below the face
         font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+        cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (0, 0, 255), 1)
+        s= 'Marking your Attendence. Please Wait.'
+        cv2.putText(frame,s,(50 , 40 ), font, 0.9, (0, 255, 255), 2)
 
 def draw_rectangle1(face_locations ,face_names ,frame):
     for (top, right, bottom, left), name in zip(face_locations, face_names):
@@ -97,7 +100,9 @@ def draw_rectangle1(face_locations ,face_names ,frame):
 
         # Draw a label with a name below the face
         font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+        cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (0, 255, 255), 1)
+        s= 'Attendence Marked'
+        cv2.putText(frame,s,(100 , 50 ), font, 1.2, (0,128,34), 2)
 
 
 clf = test()
@@ -105,11 +110,14 @@ face_locations = []
 face_encodings = []
 # face_names = []
 process_this_frame = True
+start_time = datetime.now()
 
 
 while True:
     # Grab a single frame of video
     frame = video_capture.read()
+    time_delta = datetime.now() - start_time
+
     # Process every frame only one time
     if process_this_frame:
         # Find all the faces and face encodings in the current frame of video
@@ -131,24 +139,29 @@ while True:
         # print(face_names)
 
     process_this_frame = not process_this_frame
-    draw_rectangle(face_locations, face_names, frame)
 
     # Display the results
-    window_width= 1200
-    window_height = 720
-    cv2.namedWindow('Resized Window', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('Resized Window', window_width, window_height)
-    # draw_rectangle1(face_locations , face_names ,frame)
+    window_width= 1500
+    window_height = 800
+    cv2.namedWindow('Recognising Face', cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('Recognising Face', window_width, window_height)
+    if time_delta.total_seconds() < 5:
+        draw_rectangle(face_locations, face_names, frame)
+    else:
+        draw_rectangle1(face_locations , face_names ,frame)
 
     # Display the resulting image
-    cv2.imshow('Resized Window', frame)
+    cv2.imshow('Recognising Face', frame)
     # cv2.waitKey(10)
 
     # Hit 'q' on the keyboard to quit!
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    # if cv2.waitKey(1) & 0xFF == ord('q'):
+    #     break
+    cv2.waitKey(1)
+    if ( time_delta.total_seconds() >= 8):
         break
 
-# video_capture.release()
+video_capture.release()
 cv2.destroyAllWindows()
 
 

@@ -3,14 +3,14 @@
 {% include "header.html" %}
 
 <link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
-<div class="container ">
+<div class="container">
     <div class=" well text-center">
-        <h1>DATABASE</h1>
+        <h1>ADMIN PANEL</h1>
     </div>
 {% block body %}
 <div class="well">
 
-    <div class="row">
+    <div class="">
         <div class="col md-12">
             <h2>Student List <button type="button" class="btn btn-success  pull-right" data-toggle="modal" data-target="#myModal">Add Student Data</button></h2>
     {%with messages = get_flashed_messages()%}
@@ -28,15 +28,16 @@
     {%endif%}
     {%endwith%}
 
-            <table class="table table-striped">
+            <table class="table table-striped table-bordered">
                 <tr>
               <th>Entry No</th>
               <th>Name</th>
-              <th>Image</th>
               <th>Email</th>
+              <th>Date of Birth</th>
               <th>Action</th>
 
-          </tr>
+          		</tr>
+
                 {% for row in students %}
                 <tr>
                     <td>{{row.0}}</td>
@@ -45,8 +46,7 @@
                     <td>{{row.3}}</td>
                     <td>
 
-
-               <a href="/update/{{row.0}}" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modaledit{{row.0}}">Edit</a>
+                <a href="/update/{{row.0}}" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modaledit{{row.0}}">Edit</a>
                 <a href="/delete/{{ row.0 }}" class="btn btn-danger btn-xs" onclick="return confirm('Are You Sure For Delete?')">Delete</a>
                     </td>
                 </tr>
@@ -58,20 +58,33 @@
              <h4 class="modal-title">Update Information</h4>
          </div>
          <div class="modal-body">
-             <form action="{{ url_for('update') }}" method="POST">
+             <form action="{{ url_for('update') }}" method="POST" enctype="multipart/form-data">
+
+
+
                  <div class="form-group">
                   <label>Name:</label>
-                   <input type="hidden"  name="id" value="{{row.0}}">
+                     <input type="hidden"  name="id" value="{{row.0}}">
+
+                   <input type="hidden"  name="" value="{{row.1}}">
                   <input type="text" class="form-control" name="name" value="{{row.1}}">
                </div>
                <div class="form-group">
                   <label>Email:</label>
+                   <input type="hidden"  name="" value="{{row.2}}">
+
                   <input type="text" class="form-control" name="email" value="{{row.2}}">
                </div>
                <div class="form-group">
-                  <label>Phone:</label>
-                  <input type="text" class="form-control" name="phone" value="{{row.3}}">
+                  <label>Image:</label>
+                    <input type="file" class="form-control" name="file"/>
                </div>
+
+                <div class="form-group">
+                  <label>Date Of Birth:</label>
+                  <input type="date" class="form-control" name="dob" required="1">
+               </div>
+
                <div class="form-group">
                   <button class="btn btn-primary" type="submit">Update</button>
                </div>
@@ -98,19 +111,29 @@
             <h4 class="modal-title">Please Insert Data</h4>
          </div>
          <div class="modal-body">
-            <form action="{{ url_for('insert') }}" method="POST">
+            <form action="{{ url_for('insert') }}" method="POST" enctype="multipart/form-data">
                <div class="form-group">
                   <label>Name:</label>
                   <input type="text" class="form-control" name="name" required="1">
                </div>
                 <div class="form-group">
-                  <label>id:</label>
+                  <label>Entry NO:</label>
                   <input type="text" class="form-control" name="id" required="1">
                </div>
                 <div class="form-group">
-                  <label>Face:</label>
-                  <input type="text" class="form-control" name="face" required="1">
+                  <label>Email:</label>
+                  <input type="text" class="form-control" name="email" required="1">
                </div>
+                <div class="form-group">
+                  <label>Image:</label>
+                    <input type="file" class="form-control" name="file" required="1"/>
+                </div>
+                  <div class="form-group">
+                  <label>Date Of Birth:</label>
+                  <input type="date" class="form-control" name="dob" required="1">
+               </div>
+
+
                <div class="form-group">
                   <button class="btn btn-primary" type="submit">Insert Data</button>
                </div>
@@ -126,6 +149,62 @@
     </div>
 
 </div>
+
+
+   
+
+<!--        <div class="jumbotron">
+    <form action="{{url_for('logout')}}">
+            <input class="btn btn-info" type="submit" value="Logout" />
+    </form>
+ -->
+
+
+<div class="well">
+
+<h2>View Attendence   
+            <button class="btn  btn-info pull-right" onclick="window.location.href='{{ url_for('export')}}';" > Export </button>
+  </h2>
+
+  <div class="" style="overflow-x: scroll; width:auto;" >
+
+     <table class=" table table-striped table-bordered ">
+  	<tr>
+      {% for c in col %}
+      
+      			<th> {{c}} </th>
+
+      
+      {% endfor %}
+            	</tr>
+
+
+
+     {% for index in attendence %}
+      	<tr>
+    			{% for i in range(l)  %}
+                  <td>{{index[i]}}</td>
+    			  
+                  {% endfor %}
+    			
+    		</tr>
+           
+
+
+     {% endfor %}
+   </table>
+       </div>
+
+  
+   <!-- <div class="container">     -->
+
+    
+
+    </div>
+   <br>
+
+
+ 
       {% include "footer.html" %}
 
 {% endblock %}

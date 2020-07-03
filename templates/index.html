@@ -3,8 +3,8 @@
 <link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
 
 {% block body %}
-<div class="container">
-     <h1 class="jumbotron">Welcome to Attendence Management system</h1>
+<div class="container bg-img">
+     <h1 class="jumbotron text-center">Welcome to Face Attendence System</h1>
 </div>
 <div class="container">
 <!--<button type="button" class="btn">Basic</button>-->
@@ -13,13 +13,135 @@
 <!--<button type="button" class="btn btn-success"><a href="/my-link/">Click me</a></button>-->
 <!--<button type="button" class="btn btn-info">Info</button>-->
 <!--<button type="button" class="btn btn-warning">Warning</button>-->
-<!--<button type="button" class="btn btn-danger">Danger</button>-->
+<!--<button type="button" class="btn btn-danger">admin Login </button>-->
 <!--     <input type="button" id='script' name="scriptbutton" value=" Run Script " onclick="exec('python detect.py');">-->
 
 <!--<button type="button" class="btn btn-link">Link</button>-->
- <form action="/my-link">
-            <input class="btn btn-info" type="submit" value="Click me" />
- </form>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+
+    {% for message in messages %}
+
+    <div class="alert alert-success alert-dismissable" role="alert">
+     <button type="button" class="close" data-dismiss="alert" aria-label ="close">
+         <span aria-hidden="true">&times;</span>
+     </button>
+        {{message}}
+    </div>
+
+    {%endfor%}
+
+  {% endif %}
+{% endwith %}
+
+
+<!--<div class="container">-->
+
+
+<!--</div>-->
+<!--<div class = "container">-->
+<!--<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Open Modal</button>-->
+<!--</div>-->
+
+    <div class="container bg-3 text-center">
+
+  <h3>Quick Links</h3>
+        <br><br>
+  <div class="row">
+    <div class="col-sm-4  container">
+        <form action="{{url_for('detect')}}">
+        <input type="image" src="static/finger.gif" style="width:225px; height:225px" class="img-thumbnail submit"/>
+            </form>
+        <p>Mark Attendence</p>
+    </div>
+    <div class="col-sm-4  container">
+<!--      <img class="img-thumbnail" src="static/view.jpeg" alt="Image">-->
+
+        <input type="image" src="static/view.jpeg" style="width:225px; height:225px" class="img-thumbnail submit" data-toggle="modal" data-target="#student"/>
+        <form></form>
+         <p>Student Login</p>
+    </div>
+    <div class="col-sm-4  container">
+<!--        <a> <img class="img-thumbnail" src="static/admin.jpeg" alt="Image"></a>-->
+        <input type="image" src="static/admin.jpeg" style="width:225px; height:225px" class="img-thumbnail submit" data-toggle="modal" data-target="#myModal" />
+              <form></form>
+
+        <p>
+            Admin Login
+        </p>
+    </div>
+  </div>
+</div>
+
+
+<div id="student" class="modal fade" role="dialog">
+
+
+   <div class="modal-dialog">
+      <div class="modal-content">
+
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Student Login</h4>
+
+         </div>
+         <div class="modal-body">
+            <form action="/studentlogin" method="POST" enctype="multipart/form-data">
+               <div class="form-group">
+                  <label>Entry No:</label>
+                  <input type="text" class="form-control" name="id" required="1">
+               </div>
+                <div class="form-group">
+                  <label>Date of Birth:</label>:</label>
+                  <input type="date"  class="form-control" name="dob" required="1">
+               </div>
+
+               <div class="form-group">
+                  <button class="btn btn-primary" type="submit">Login</button>
+               </div>
+            </form>
+         </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+           </div>
+         </div>
+   </div>
+</div>
+
+<div id="myModal" class="modal fade" role="dialog">
+
+
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Admin Login</h4>
+
+         </div>
+         <div class="modal-body">
+            <form action="{{ url_for('login') }}" method="POST" enctype="multipart/form-data">
+               <div class="form-group">
+                  <label>User Name:</label>
+                  <input type="text" class="form-control" name="username" required="1">
+               </div>
+                <div class="form-group">
+                  <label>Password:</label>:</label>
+                  <input type="password" placeholder="password" class="form-control" name="password" required="1">
+               </div>
+
+               <div class="form-group">
+                  <button class="btn btn-primary" type="submit">Login</button>
+               </div>
+            </form>
+         </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+           </div>
+         </div>
+   </div>
+</div>
 
 
 </div>
