@@ -3,6 +3,8 @@ import mysql.connector
 import os
 import datetime
 from openpyxl import Workbook
+from base64 import b64encode
+from openpyxl.writer.excel import save_virtual_workbook
 
 
 from multipleface import VideoCamera
@@ -36,8 +38,10 @@ app.config["SECRET_KEY"] = "secret"
 # @app.route('/video_feed')
 # def video_feed():
 #     return Response(gen(VideoCamera()), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 @app.route('/')
 def index():
+    session.pop('user',None)
     mydb = CONNECTION()
     cursor = mydb.cursor()
     today = datetime.date.today()
@@ -83,6 +87,7 @@ def export():
 
     workbook_name = "AttendenceRecord"
     wb.save(workbook_name + ".xlsx")
+
     flash('Your File Has Been Downloaded.')
     return redirect(url_for('database'))
 
@@ -102,8 +107,9 @@ def student_data():
 
 @app.route('/admin')
 def database():
-    if g.user:
-
+    print(g.user)
+    if g.user == 'admin':
+        # session.pop('user',None)
         mydb = CONNECTION()
         cursor = mydb.cursor()
         today = datetime.date.today()
@@ -123,13 +129,14 @@ def database():
             start_date += delta
 
         s=s+ '`'+str(today)+'`'
-        print (s)
+        # print (s)
         cursor = mydb.cursor()
         query = f"SELECT Id,name,{s} FROM student"
         cursor.execute(query)
         atten_data = cursor.fetchall()
         col= cursor.column_names
         return render_template('database.html',students= data ,attendence = atten_data,col= col,l=len(col))
+
     return redirect(url_for('index'))
 
 @app.route('/insert' ,methods = ['POST'])
@@ -168,13 +175,24 @@ def delete(id):
 
 @app.route('/student/<string:id>', methods = ['GET','POST'])
 def studentpage(id):
-    if g.user:
+    print(g.user)
+    if g.user == str(id):
+        # session.pop('user',None)
         mydb= CONNECTION()
         cursor = mydb.cursor()
-        # query = "SELECT "
-        cursor.execute()
+        query = f"SELECT * FROM student WHERE Id =%s"
+        cursor.execute(query,(id,))
+        data = cursor.fetchall()
+        # print("lnajlnvernladblrvanlljn")
+        # print(data[0][1])
 
-        return render_template('home.html')
+        names=cursor.column_names
+        image = b64encode(data[0][2]).decode("utf-8")
+        l=len(names)
+        # print(names)
+        # print(l)
+
+        return render_template('home.html',names= names, data = data , l= l,image = image)
     return redirect(url_for('index'))
 
 
@@ -209,8 +227,8 @@ def login():
             flash('Invalid Credentials. Please try again.')
             # return alert('Invalid Credentials. Please try again.')
         else:
-            # session['user'] = request.form['username']
-            session['user']= True
+            session['user'] = request.form['username']
+            # session['user']= True
             return redirect(url_for('database'))
 
     return redirect(url_for('index'))
@@ -230,7 +248,7 @@ def studentlogin():
 
         # print(birth)
         if (d!=None and d[0] == str(birth)):
-            session['user']= True
+            session['user'] = request.form['id']
             return  redirect(url_for('studentpage', id=id))
         else:
             flash('Invalid Credentials. Please try again.')
@@ -243,10 +261,11 @@ def before_request():
         g.user = session['user']
 
 
+
 @app.route('/logout')
 def logout():
-    # session.pop('user',None)
-    session['user']= False
+    session.pop('user',None)
+    # session['user']= False
     return render_template('index.html')
 
 if __name__== "__main__":

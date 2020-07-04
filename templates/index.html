@@ -3,7 +3,7 @@
 <link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
 
 {% block body %}
-<div class="container bg-img">
+<div class="container">
      <h1 class="jumbotron text-center">Welcome to Face Attendence System</h1>
 </div>
 <div class="container">
@@ -52,7 +52,7 @@
         <form action="{{url_for('detect')}}">
         <input type="image" src="static/finger.gif" style="width:225px; height:225px" class="img-thumbnail submit"/>
             </form>
-        <p>Mark Attendence</p>
+        <p >Mark Attendence</p>
     </div>
     <div class="col-sm-4  container">
 <!--      <img class="img-thumbnail" src="static/view.jpeg" alt="Image">-->
@@ -141,10 +141,18 @@
            </div>
          </div>
    </div>
+
 </div>
 
 
 </div>
+
+
+<br>
+<br>
+
+      {% include "footer.html" %}
+
 
 {% endblock %}
 <script type="text/javascript" src="{{url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>

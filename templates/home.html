@@ -1,6 +1,82 @@
-<h1>WELCOME {{user}}</h1>
-      <div class="jumbotron">
-    <form action="{{url_for('logout')}}">
-            <input class="btn btn-info" type="submit" value="Logout" />
-    </form>
-       </div>
+
+
+
+{% include "header.html" %}
+
+ <a class="btn pull-right btn-danger" style="font-size:20px;cursor:pointer" onclick="window.location.href='{{ url_for('logout')}}';" > Logout </a>
+
+<div class="container">
+
+<div class=" well page-header">
+  <h1 class="text-center">Student's Panel
+</h1>
+
+</div>
+
+
+ <div class="container" >
+  <img class="thumbnail" src="data:;base64,{{ image }}" style="height:300px;width:300px; margin:0 auto;"/>
+  </div>
+<br>
+  <div class="container well">
+
+  <h2>
+     Student Details
+ </h2>
+<table class="table table-striped table-bordered" >
+
+
+  <tr>
+    <th>Entry No:</th>
+    <td> {{data[0][0]}} </td>
+  </tr>
+  <tr>
+    <th>Name:</th>
+    <td> {{data[0][1]}} </td>
+  </tr>
+  <tr>
+    <th>Email Id:</th>
+    <td> {{data[0][4]}}</td>
+  </tr>
+
+
+
+</table>
+<br>
+
+ <h2>Attendence Details
+<!--     <button class="btn  btn-info pull-right" onclick="window.location.href='{{ url_for('export')}}';" > Export </button>-->
+
+ </h2>
+ <div class="" style="overflow-y:scroll; height:auto;">
+    <table class="table table-striped table-bordered" >
+     <th>
+         Date
+     </th>
+     <th>
+         Present/Absent
+     </th>
+     {% for i in range(5,l) %}
+        <tr>
+
+            <td> {{names[i]}}</td>
+            <td> {{data[0][i]}} </td>
+
+        </tr>
+
+     {% endfor %}
+
+ </table>
+
+</div>
+
+
+      </div>
+      {% include "footer.html" %}
+
+</div>
+
+
+
+    
+
