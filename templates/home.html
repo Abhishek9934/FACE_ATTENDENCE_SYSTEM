@@ -8,7 +8,7 @@
 <div class="container">
 
 <div class=" well page-header">
-  <h1 class="text-center">Student's Panel
+  <h1 class="text-center">Welcome to {{tab}}
 </h1>
 
 </div>
@@ -36,7 +36,7 @@
   </tr>
   <tr>
     <th>Email Id:</th>
-    <td> {{data[0][4]}}</td>
+    <td> {{data[0][3]}}</td>
   </tr>
 
 
@@ -45,7 +45,6 @@
 <br>
 
  <h2>Attendence Details
-<!--     <button class="btn  btn-info pull-right" onclick="window.location.href='{{ url_for('export')}}';" > Export </button>-->
 
  </h2>
  <div class="" style="overflow-y:scroll; height:auto;">
@@ -56,11 +55,11 @@
      <th>
          Present/Absent
      </th>
-     {% for i in range(5,l) %}
+     {% for i in range(2,l) %}
         <tr>
 
             <td> {{names[i]}}</td>
-            <td> {{data[0][i]}} </td>
+            <td> {{att[0][i]}} </td>
 
         </tr>
 

@@ -39,6 +39,8 @@ app.config["SECRET_KEY"] = "secret"
 # def video_feed():
 #     return Response(gen(VideoCamera()), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+##################################################  Route to INDEX Page #####################################################
+
 @app.route('/')
 def index():
     session.pop('user',None)
@@ -55,8 +57,130 @@ def index():
         q= f"ALTER TABLE `database`.`student` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
         cursor.execute(q)
 
-
     return render_template('index.html')
+
+
+###########################################Loads the face recogniser #######################################################
+
+@app.route('/detect')
+def detect():
+    print ('I got clicked!')
+
+    os.system('python detect.py')
+    flash('Attendence Marked Successfully!!!')
+
+    return redirect(url_for('index'))
+
+
+
+
+
+#################################################### route for admin login ##################################################
+
+@app.route('/login',methods= ['GET','POST'])
+def login():
+
+    if request.method == 'POST':
+        session.pop('user',None)
+        if request.form['username'] != 'admin' or request.form['password'] != 'admin':
+            flash('Invalid Credentials. Please try again.')
+            # return alert('Invalid Credentials. Please try again.')
+        else:
+            session['user'] = request.form['username']
+            # session['user']= True
+            return redirect(url_for('database'))
+
+    return redirect(url_for('index'))
+
+
+
+@app.route('/admin')
+def database():
+    print(g.user)
+    if g.user == 'admin':
+        # session.pop('user',None)
+        mydb = CONNECTION()
+        cursor = mydb.cursor()
+        today = datetime.date.today()
+        today = today.strftime("%b,%d,%Y")
+
+        cursor.execute(f"SELECT Id,name,Email,DOB,Image FROM student")
+        data= cursor.fetchall()
+        cursor.close()
+
+        today = datetime.date.today()
+        start_date = datetime.date(2020, 6, 30)
+
+        delta = datetime.timedelta(days=1)
+        s=''
+        while start_date < today:
+            s = s+'`'+str(start_date)+'`,'
+            start_date += delta
+
+        s=s+ '`'+str(today)+'`'
+        # print (s)
+        cursor = mydb.cursor()
+        query = f"SELECT Id,name,{s} FROM student"
+        cursor.execute(query)
+        atten_data = cursor.fetchall()
+        col= cursor.column_names
+        return render_template('database.html',students= data ,attendence = atten_data,col= col,l=len(col))
+
+    return redirect(url_for('index'))
+
+
+
+@app.route('/insert' ,methods = ['POST'])
+def insert():
+    if request.method == 'POST':
+
+        flash("Data Inserted Successfully")
+        name = request.form['name']
+        dob = request.form['dob']
+        id = request.form['id']
+        email = request.form['email']
+        f = request.files['file']
+        data = f.read()
+        # print(type(data))
+        mydb = CONNECTION()
+        cursor = mydb.cursor()
+        query = "INSERT INTO student (id,name,Image,DOB,Email) VALUES (%s,%s,%s,%s,%s)"
+
+        cursor.execute(query,(id,name,data,dob,email,))
+        mydb.commit()
+        cursor.close()
+        mydb.close()
+        return redirect(url_for('database'))
+
+
+
+@app.route('/update', methods = ['POST','GET'])
+def update():
+    if request.method == 'POST':
+        id = request.form['id']
+        name = request.form['name']
+        dob = request.form['dob']
+        email = request.form['email']
+        mydb = CONNECTION()
+        cur = mydb.cursor()
+        f = request.files['file']
+        data = f.read()
+        cur.execute(""" UPDATE student SET Id =%s ,name=%s, Email= %s, Image= %s,DOB= %s WHERE id= %s """, (id,name,email,data,dob,id,))
+        flash("Data Updated Successfully")
+        mydb.commit()
+        return redirect(url_for('database'))
+
+@app.route('/delete/<string:id>',methods = ['GET'])
+def delete(id):
+    flash("Record Has been Deleted Successful")
+    mydb = CONNECTION()
+    cursor = mydb.cursor()
+    cursor.execute("DELETE FROM student WHERE id = %s" ,(id,))
+    mydb.commit()
+    cursor.close()
+    mydb.close()
+    return redirect(url_for('database'))
+
 
 @app.route('/export')
 def export():
@@ -93,85 +217,29 @@ def export():
 
 
 
-@app.route('/detect')
-def detect():
-    print ('I got clicked!')
-    os.system('python detect.py')
-    flash('Attendence Marked Successfully!!!')
 
-    return redirect(url_for('index'))
+############################################################# route for student panel #######################################
 
-@app.route('/student_data/<string:id>',methods = ['GET'])
-def student_data():
-    print("Coming Soon")
-
-@app.route('/admin')
-def database():
-    print(g.user)
-    if g.user == 'admin':
-        # session.pop('user',None)
-        mydb = CONNECTION()
-        cursor = mydb.cursor()
-        today = datetime.date.today()
-        today = today.strftime("%b,%d,%Y")
-
-        cursor.execute(f"SELECT Id,name,Email,DOB,Image FROM student")
-        data= cursor.fetchall()
-        cursor.close()
-
-        today = datetime.date.today()
-        start_date = datetime.date(2020, 6, 30)
-
-        delta = datetime.timedelta(days=1)
-        s=''
-        while start_date < today:
-            s = s+'`'+str(start_date)+'`,'
-            start_date += delta
-
-        s=s+ '`'+str(today)+'`'
-        # print (s)
-        cursor = mydb.cursor()
-        query = f"SELECT Id,name,{s} FROM student"
-        cursor.execute(query)
-        atten_data = cursor.fetchall()
-        col= cursor.column_names
-        return render_template('database.html',students= data ,attendence = atten_data,col= col,l=len(col))
-
-    return redirect(url_for('index'))
-
-@app.route('/insert' ,methods = ['POST'])
-def insert():
+@app.route('/studentlogin', methods =['GET','POST'])
+def studentlogin():
     if request.method == 'POST':
 
-        flash("Data Inserted Successfully")
-        name = request.form['name']
-        dob = request.form['dob']
+        session.pop('user',None)
         id = request.form['id']
-        email = request.form['email']
-        f = request.files['file']
-        data = f.read()
-        # print(type(data))
-        mydb = CONNECTION()
-        cursor = mydb.cursor()
-        query = "INSERT INTO student (id,name,Image,DOB,Email) VALUES (%s,%s,%s,%s,%s)"
+        birth = request.form['dob']
+        mydb= CONNECTION()
+        cursor= mydb.cursor()
+        cursor.execute("SELECT DOB FROM student WHERE Id=%s",(id,))
+        d= cursor.fetchone()
 
-        cursor.execute(query,(id,name,data,dob,email,))
-        mydb.commit()
-        cursor.close()
-        mydb.close()
-        return redirect(url_for('database'))
+        # print(birth)
+        if (d!=None and d[0] == str(birth)):
+            session['user'] = request.form['id']
+            return  redirect(url_for('studentpage', id=id))
+        else:
+            flash('Invalid Credentials. Please try again.')
+    return  redirect(url_for('index'))
 
-
-@app.route('/delete/<string:id>',methods = ['GET'])
-def delete(id):
-    flash("Record Has been Deleted Successful")
-    mydb = CONNECTION()
-    cursor = mydb.cursor()
-    cursor.execute("DELETE FROM student WHERE id = %s" ,(id,))
-    mydb.commit()
-    cursor.close()
-    mydb.close()
-    return redirect(url_for('database'))
 
 @app.route('/student/<string:id>', methods = ['GET','POST'])
 def studentpage(id):
@@ -196,64 +264,7 @@ def studentpage(id):
     return redirect(url_for('index'))
 
 
-
-
-
-
-
-@app.route('/update', methods = ['POST','GET'])
-def update():
-    if request.method == 'POST':
-        id = request.form['id']
-        name = request.form['name']
-        dob = request.form['dob']
-        email = request.form['email']
-        mydb = CONNECTION()
-        cur = mydb.cursor()
-        f = request.files['file']
-        data = f.read()
-        cur.execute(""" UPDATE student SET Id =%s ,name=%s, Email= %s, Image= %s,DOB= %s WHERE id= %s """, (id,name,email,data,dob,id,))
-        flash("Data Updated Successfully")
-        mydb.commit()
-        return redirect(url_for('database'))
-
-
-@app.route('/login',methods= ['GET','POST'])
-def login():
-
-    if request.method == 'POST':
-        session.pop('user',None)
-        if request.form['username'] != 'admin' or request.form['password'] != 'admin':
-            flash('Invalid Credentials. Please try again.')
-            # return alert('Invalid Credentials. Please try again.')
-        else:
-            session['user'] = request.form['username']
-            # session['user']= True
-            return redirect(url_for('database'))
-
-    return redirect(url_for('index'))
-
-
-@app.route('/studentlogin', methods =['GET','POST'])
-def studentlogin():
-    if request.method == 'POST':
-
-        session.pop('user',None)
-        id = request.form['id']
-        birth = request.form['dob']
-        mydb= CONNECTION()
-        cursor= mydb.cursor()
-        cursor.execute("SELECT DOB FROM student WHERE Id=%s",(id,))
-        d= cursor.fetchone()
-
-        # print(birth)
-        if (d!=None and d[0] == str(birth)):
-            session['user'] = request.form['id']
-            return  redirect(url_for('studentpage', id=id))
-        else:
-            flash('Invalid Credentials. Please try again.')
-    return  redirect(url_for('index'))
-
+##################################################route for before request #################################################
 @app.before_request
 def before_request():
     g.user = None
@@ -261,6 +272,7 @@ def before_request():
         g.user = session['user']
 
 
+################################################# route for logout ########################################################
 
 @app.route('/logout')
 def logout():
@@ -268,5 +280,11 @@ def logout():
     # session['user']= False
     return render_template('index.html')
 
+
+############################################################################################################################
 if __name__== "__main__":
     app.run(debug=True)
+
+
+
+

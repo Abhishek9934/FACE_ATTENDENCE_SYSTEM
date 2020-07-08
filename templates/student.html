@@ -1,0 +1,85 @@
+{% include "header.html" %}
+
+<link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
+
+{% block body %}
+<div class="container">
+    <div class="jumbotron text-center">
+        <h1>STUDENT PANEL</h1>
+    </div>
+
+    <h2> List Of Enrolled Classes: </h2>
+
+<br>
+<br>
+
+{% for class in classes %}
+
+<div class=" btn-group-justified">
+    <a href="/student/{{class}}/{{id}}" class="btn btn-info btn-lg"  >{{class}}</a>
+</div>
+    {% endfor %}
+
+    </div>
+
+
+<div class="container">
+
+    <h2>Enroll in a new Class <button type="button" class="btn btn-success  pull-right" data-toggle="modal" data-target="#joinClass">Join Class</button></h2>
+
+</div>
+
+
+<div id="joinClass" class="modal fade" role="dialog">
+
+
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title"> Join a Class </h4>
+
+         </div>
+         <div class="modal-body">
+            <form action="/join/{{id}}" method="POST" enctype="multipart/form-data">
+                               <div class="form-group">
+                                  <label>Select Class:</label>
+                                     <label>Select list:</label>
+                                      <select class="form-control" name="classname">
+                                        {% for class in classlist %}
+                                              {% if class == 'new_table' or class =='StudentRecord' or class =='TeacherRecord'%}
+                                                   {%continue%}
+                                                {%endif%}
+                                             <option> {{class}}</option>
+                                          {%endfor%}
+                                      </select>
+                               </div>
+
+
+
+                <div class="form-group">
+                    <label>Enter Class Code</label>
+                    <input type="password" class="form-control" name="classcode" required="1">
+                </div>
+
+               <div class="form-group">
+                  <button class="btn btn-primary" type="submit">Join</button>
+               </div>
+            </form>
+         </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+           </div>
+         </div>
+   </div>
+</div>
+
+      {% include "footer.html" %}
+
+
+{% endblock %}
+
+<script type="text/javascript" src="{{url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
+<script type="text/javascript" src="{{url_for('static', filename = 'js/bootstrap.min.js')}}"></script>
+

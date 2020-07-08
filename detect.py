@@ -1,3 +1,5 @@
+
+
 import face_recognition
 import numpy as np
 import cv2, queue, threading, time
@@ -7,38 +9,10 @@ from train import train
 from train import test
 import mysql.connector
 from datetime import date,datetime
+import statistics
 
 
-# bufferless VideoCapture
-class VideoCapture:
-    def __init__(self, name):
-        self.cap = cv2.VideoCapture(name)
-        self.q = queue.Queue()
-        t = threading.Thread(target=self._reader)
-        t.daemon = True
-        t.start()
-
-    # read frames as soon as they are available, keeping only most recent one
-    def _reader(self):
-        while True:
-            ret, frame = self.cap.read()
-            if not ret:
-                break
-            if not self.q.empty():
-                try:
-                    self.q.get_nowait()  # discard previous (unprocessed) frame
-                except queue.Empty:
-                    pass
-            self.q.put(frame)
-
-    def read(self):
-        return self.q.get()
-
-
-video_capture = VideoCapture(0)
-
-
-def mark_attendence(face):
+def mark_attendence(face , table):
     mydb = mysql.connector.connect(
 
         host="localhost",
@@ -52,19 +26,16 @@ def mark_attendence(face):
     print(today)
     # today = today.strftime("%b,%d,%Y")
     print(today)
-    query = f"SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'student' AND COLUMN_NAME = %s; "
+    query = f"SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table}' AND COLUMN_NAME = %s; "
     cursor.execute(query,(today,))
     r = cursor.fetchall()
     if (len(r)==0):
-        q= f"ALTER TABLE `database`.`student` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
+        q= f"ALTER TABLE `database`.`{table}` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
         cursor.execute(q)
 
-
-    mark = f"UPDATE student SET `{today}`= 1 WHERE name=%s"
+    mark = f"UPDATE {table} SET `{today}`= 1 WHERE name=%s"
     v= (face,)
     cursor.execute(mark,v)
-
-
     mydb.commit()
     cursor.close()
     mydb.close()
@@ -105,64 +76,71 @@ def draw_rectangle1(face_locations ,face_names ,frame):
         cv2.putText(frame,s,(100 , 50 ), font, 1.2, (0,128,34), 2)
 
 
-clf = test()
-face_locations = []
-face_encodings = []
-# face_names = []
-process_this_frame = True
-start_time = datetime.now()
+
+if __name__== "__main__":
+    video_capture = cv2.VideoCapture(0)
+
+    clf = test()
+    face_locations = []
+    face_names = []
+    process_this_frame = True
+    start_time = datetime.now()
+    face_encodings = []
 
 
-while True:
-    # Grab a single frame of video
-    frame = video_capture.read()
-    time_delta = datetime.now() - start_time
+    while True:
+            # Grab a single frame of video
+        (g,frame)= video_capture.read()
+        time_delta = datetime.now() - start_time
 
-    # Process every frame only one time
-    if process_this_frame:
-        # Find all the faces and face encodings in the current frame of video
-        face_locations = face_recognition.face_locations(frame)
-        face_encodings = face_recognition.face_encodings(frame, face_locations)
+            # Process every frame only one time
+        if process_this_frame:
+                # Find all the faces and face encodings in the current frame of video
+            face_locations = face_recognition.face_locations(frame)
+            face_encodings = face_recognition.face_encodings(frame, face_locations)
 
-        # Initialize an array for the name of the detected users
-        face_names = []
-        for face_encoding in face_encodings:
-            # See if the face is a match for the known face(s)
-            # name= 'UNKNOWN'
-            name=clf.predict([face_encoding])
-            print (*name)
-            if(name):
+                # Initialize an array for the name of the detected users
+            face_names = []
+            for face_encoding in face_encodings:
+                    # See if the face is a match for the known face(s)
+                    # name= 'UNKNOWN'
+                name=clf.predict([face_encoding])
+                # print (*name)
+                    # if(name):
 
-                mark_attendence(str(*name))
-            face_names.append(*name)
+                face_names.append(*name)
 
-        # print(face_names)
+                # face = statistics.mode(face_names)
+                # mark_attendence(str(face), 'student')
 
-    process_this_frame = not process_this_frame
+            print(face_names)
 
-    # Display the results
-    window_width= 1500
-    window_height = 800
-    cv2.namedWindow('Recognising Face', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('Recognising Face', window_width, window_height)
-    if time_delta.total_seconds() < 5:
-        draw_rectangle(face_locations, face_names, frame)
-    else:
-        draw_rectangle1(face_locations , face_names ,frame)
+        process_this_frame = not process_this_frame
 
-    # Display the resulting image
-    cv2.imshow('Recognising Face', frame)
-    # cv2.waitKey(10)
+            # Display the results
+        window_width= 1500
+        window_height = 800
+        cv2.namedWindow('Recognising Face', cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('Recognising Face', window_width, window_height)
+        if time_delta.total_seconds() < 5:
+            draw_rectangle(face_locations, face_names, frame)
+        else:
+            draw_rectangle1(face_locations , face_names ,frame)
 
-    # Hit 'q' on the keyboard to quit!
-    # if cv2.waitKey(1) & 0xFF == ord('q'):
-    #     break
-    cv2.waitKey(1)
-    if ( time_delta.total_seconds() >= 8):
-        break
+            # Display the resulting image
+        cv2.imshow('Recognising Face', frame)
+            # cv2.waitKey(10)
 
-video_capture.release()
-cv2.destroyAllWindows()
+            # Hit 'q' on the keyboard to quit!
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            #     break
+        cv2.waitKey(1)
+        if ( time_delta.total_seconds() >= 8):
+            break
+
+    video_capture.release()
+    cv2.destroyAllWindows()
+
 
 
 

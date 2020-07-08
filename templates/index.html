@@ -7,16 +7,7 @@
      <h1 class="jumbotron text-center">Welcome to Face Attendence System</h1>
 </div>
 <div class="container">
-<!--<button type="button" class="btn">Basic</button>-->
-<!--<button type="button" class="btn btn-default">Default</button>-->
-<!--<button type="button" class="btn btn-primary">Primary</button>-->
-<!--<button type="button" class="btn btn-success"><a href="/my-link/">Click me</a></button>-->
-<!--<button type="button" class="btn btn-info">Info</button>-->
-<!--<button type="button" class="btn btn-warning">Warning</button>-->
-<!--<button type="button" class="btn btn-danger">admin Login </button>-->
-<!--     <input type="button" id='script' name="scriptbutton" value=" Run Script " onclick="exec('python detect.py');">-->
 
-<!--<button type="button" class="btn btn-link">Link</button>-->
 {% with messages = get_flashed_messages() %}
   {% if messages %}
 
@@ -35,13 +26,6 @@
 {% endwith %}
 
 
-<!--<div class="container">-->
-
-
-<!--</div>-->
-<!--<div class = "container">-->
-<!--<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Open Modal</button>-->
-<!--</div>-->
 
     <div class="container bg-3 text-center">
 
@@ -51,20 +35,20 @@
     <div class="col-sm-4  container">
         <form action="{{url_for('detect')}}">
         <input type="image" src="static/finger.gif" style="width:225px; height:225px" class="img-thumbnail submit"/>
-            </form>
-        <p >Mark Attendence</p>
+        </form>
+        <p >Mark Attendance</p>
     </div>
     <div class="col-sm-4  container">
 <!--      <img class="img-thumbnail" src="static/view.jpeg" alt="Image">-->
 
         <input type="image" src="static/view.jpeg" style="width:225px; height:225px" class="img-thumbnail submit" data-toggle="modal" data-target="#student"/>
-        <form></form>
+
          <p>Student Login</p>
     </div>
     <div class="col-sm-4  container">
 <!--        <a> <img class="img-thumbnail" src="static/admin.jpeg" alt="Image"></a>-->
-        <input type="image" src="static/admin.jpeg" style="width:225px; height:225px" class="img-thumbnail submit" data-toggle="modal" data-target="#myModal" />
-              <form></form>
+        <input type="image" src="static/admin.jpeg" style="width:225px; height:225px" class="img-thumbnail submit" data-toggle="modal" data-target="#myModal"/>
+
 
         <p>
             Admin Login
@@ -98,6 +82,8 @@
 
                <div class="form-group">
                   <button class="btn btn-primary" type="submit">Login</button>
+                  <button class="btn btn-warning pull-right" data-dismiss="modal" data-toggle="modal" data-target="#register" >Sign Up</button>
+
                </div>
             </form>
          </div>
@@ -142,6 +128,84 @@
          </div>
    </div>
 
+</div>
+
+
+<!--<div id="enterclass" class="modal fade" role="dialog">-->
+
+
+<!--   <div class="modal-dialog">-->
+<!--      <div class="modal-content">-->
+<!--         <div class="modal-header">-->
+<!--            <button type="button" class="close" data-dismiss="modal">&times;</button>-->
+<!--            <h4 class="modal-title">Mark Your Attendance</h4>-->
+
+<!--         </div>-->
+<!--         <div class="modal-body">-->
+<!--            <form action="/detect" >-->
+<!--               <div class="form-group">-->
+<!--                  <label>Enter Name of Class:</label>-->
+<!--                  <input type="text" class="form-control" name="table" required="1">-->
+<!--               </div>-->
+
+<!--               <div class="form-group">-->
+<!--                  <button class="btn btn-primary" type="submit">Mark Attendance</button>-->
+<!--               </div>-->
+<!--            </form>-->
+<!--         </div>-->
+<!--           <div class="modal-footer">-->
+<!--              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+
+<!--           </div>-->
+<!--         </div>-->
+<!--   </div>-->
+
+<!--</div>-->
+
+
+
+<div id="register" class="modal fade" role="dialog">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Please Insert Data</h4>
+         </div>
+         <div class="modal-body">
+            <form action="/register" method="POST" enctype="multipart/form-data">
+               <div class="form-group">
+                  <label>Name:</label>
+                  <input type="text" class="form-control" name="name" required="1">
+               </div>
+                <div class="form-group">
+                  <label>Entry NO:</label>
+                  <input type="text" class="form-control" name="id" required="1">
+               </div>
+                <div class="form-group">
+                  <label>Email:</label>
+                  <input type="text" class="form-control" name="email" required="1">
+               </div>
+                <div class="form-group">
+                  <label>Image:</label>
+                    <input type="file" class="form-control" name="file" required="1"/>
+                </div>
+                <div>
+                    <label>Date of Birth:</label>
+                    <input type="date" class="form-control" name="dob" required="1"/>
+
+                </div>
+                <br>
+               <div class="form-group">
+                  <button class="btn btn-primary" type="submit">Register</button>
+               </div>
+            </form>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+         </div>
+      </div>
+   </div>
 </div>
 
 
