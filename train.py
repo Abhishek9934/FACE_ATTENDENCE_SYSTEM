@@ -1,7 +1,7 @@
 import face_recognition
 import numpy as np
-import cv2, queue, threading, time
-import requests, os
+import cv2
+import  os
 from sklearn import svm
 import mysql.connector
 import pickle
@@ -24,7 +24,9 @@ def train():
 		host="localhost",
 		user="root",
 		passwd="Abhishek@6204",
-		database="database"
+		database="database",
+		use_pure="True"
+
 	)
 	cursor = mydb.cursor()
 	print("Training data ......")

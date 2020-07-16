@@ -1,0 +1,26 @@
+{% include "header.html" %}
+
+<link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
+
+{% block body %}
+
+<div class="container">
+    <div class="jumbotron text-center">
+        <h1>TEACHER PANEL</h1>
+    </div>
+
+
+<br>
+<br>
+
+
+  <h1 class="container">Coming Soon !</h1>
+
+{% include "footer.html" %}
+
+
+{% endblock %}
+
+<script type="text/javascript" src="{{url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
+<script type="text/javascript" src="{{url_for('static', filename = 'js/bootstrap.min.js')}}"></script>
+
