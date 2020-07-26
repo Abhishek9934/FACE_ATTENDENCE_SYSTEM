@@ -2,6 +2,7 @@
 
 <link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
 
+
 {% block body %}
 <div class="container">
     <div class="jumbotron text-center">
@@ -9,9 +10,9 @@
     </div>
 
 
-     
 
-    <h2> List Of Enrolled Classes:  <button type="button" class="btn btn-success  pull-right" data-toggle="modal" data-target="#enterclass">Mark Your Attendance</button> </h2>
+
+    <h2> List Of Enrolled Classes:   </h2>
 
 <br>
 <br>
@@ -19,7 +20,8 @@
 {% for class in classes %}
 
 <div class=" btn-group-justified">
-    <a href="/student/{{class}}/{{id}}" class="btn btn-info btn-lg"  >{{class}}</a>
+    <a href="/student/{{class}}/{{id}}" style="margin-bottom: 10px;" class="btn btn-info btn-lg"  >{{class}}</a>
+
 </div>
     {% endfor %}
 
@@ -56,7 +58,7 @@
                                   <label>Select Class:</label>
                                       <select class="form-control" name="classname">
                                         {% for class in classlist %}
-                                              {% if class == 'new_table' or class =='StudentRecord' or class =='TeacherRecord'%}
+                                              {% if class == 'new_table'or class=='TeacherClasses' or class =='StudentRecord' or class =='TeacherRecord'%}
                                                    {%continue%}
                                                 {%endif%}
                                              <option> {{class}}</option>
@@ -85,7 +87,7 @@
 </div>
 
 
-
+<!-- 
 
 <div id="enterclass" class="modal fade" role="dialog">
 
@@ -98,22 +100,9 @@
 
          </div>
          <div class="modal-body">
-            <form action="/detect" method="POST" enctype="multipart/form-data">
+            <form action="/detect/{{id}}" method="POST" enctype="multipart/form-data">
 
 
-                <div class="form-group">
-                                  <label>Select Class:</label>
-                                      <select class="form-control" name="classname">
-                                        {% for i in classes %}
-                                              {% if i == 'new_table' or i =='StudentRecord' or i=='TeacherRecord'%}
-                                                   {%continue%}
-                                                {%endif%}
-                                             <option> {{i}}</option>
-                                          {%endfor%}
-                                      </select>
-                               </div>
-
-               <div class="form-group">
                   <button class="btn btn-primary" type="submit">Mark Attendance</button>
                </div>
             </form>
@@ -125,7 +114,7 @@
          </div>
    </div>
 
-</div>
+</div> -->
 
       {% include "footer.html" %}
 

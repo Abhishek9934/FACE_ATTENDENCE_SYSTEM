@@ -5,19 +5,141 @@
 {% block body %}
 
 <div class="container">
-    <div class="jumbotron text-center">
+    <div class="container well text-center">
         <h1>TEACHER PANEL</h1>
     </div>
 
+    <h2> Current Active Classes:  </h2>
+<div class="container">
+<a type="button" class="btn btn-danger btn-lg pull-left " data-toggle="modal" data-target="#markattendace" > Mark Attendance </a>    
+<a type="button" class="btn btn-success btn-lg  pull-right" data-toggle="modal" data-target="#class"> Create A New Class</a> 
+</div>
+<br>
+{% for class in classes %}
+
+<div class="container well">
+<div class=" btn-group-justified">
+    <a href="/classes/{{class}}" class="btn btn-info "  >{{class}}</a>
+    <a href="/deleteclass/{{class}}/{{id}}" class="btn btn-danger  "  onclick="return confirm('Are You Sure For Delete?')" >Delete Class</span></a>
+ </div>
+
+    <!-- <a  class="btn btn-success btn-lg" data-toggle="modal" data-target="#myclass"  >Face Registration</a> -->
+           <form action="/registerclass/{{class}}" method="POST" enctype="multipart/form-data">
+               <div class="form-group">
+                  <label>Upload Your Class Photograph:</label>
+                   
+                  <input type="file" class="form-control"  name="file" required="1">
+                  </div>
+                <div class="form-group">
+                  <button class="pull-right btn btn-primary" type="submit"> Register </button>
+               </div>   
+              
+            </form>
+
+
+</div>
+
+{%endfor%}
+
+
+  <!-- <h1 class="container">Coming Soon !</h1> -->
+
+
+
+
+
+
+
+
+<div id="markattendace" class="modal fade" role="dialog">
+
+
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">    
+
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title"> MarK Today's Attendance</h4>
+
+         </div>
+         <div class="modal-body">
+            <form action="/markattendance/{{id}}" method="POST" enctype="multipart/form-data">
+               <div class="form-group">
+                  <label>Upload Your Class Photograph:</label>
+                  <input type="file" class="form-control" name="file" required="1">
+               </div>
+
+
+                <div class="form-group">
+                                  <label>Select Class:</label>
+                                      <select class="form-control" name="classname">
+                                        {% for i in classes %}
+                                              {% if i == 'new_table' or i =='StudentRecord' or i== 'TeacherClasses' or i=='TeacherRecord'%}
+                                                   {%continue%}
+                                                {%endif%}
+                                             <option> {{i}}</option>
+                                          {%endfor%}
+                                      </select>
+                               </div>
+              
+
+               <div class="form-group">
+
+                  <button class="btn btn-primary" type="submit"> Submit </button>
+               </div>
+            </form>
+         </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+           </div>
+         </div>
+   </div>
+
+</div>
+
+
+
+<div id="class" class="modal fade" role="dialog">
+
+
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Create a New Class</h4>
+
+         </div>
+         <div class="modal-body">
+            <form action="/createclass/{{id}}" method="POST" enctype="multipart/form-data">
+               <div class="form-group">
+                  <label>Class Name:</label>
+                  <input type="text" class="form-control" name="classname" required="1">
+               </div>
+
+               <div class="form-group">
+                  <button class="btn btn-primary" type="submit">Create</button>
+               </div>
+            </form>
+         </div>
+           <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+           </div>
+         </div>
+   </div>
+
+</div>
+
+
+
+
 
 <br>
 <br>
 
-
-  <h1 class="container">Coming Soon !</h1>
 
 {% include "footer.html" %}
-
 
 {% endblock %}
 

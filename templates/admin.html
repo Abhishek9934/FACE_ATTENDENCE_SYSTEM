@@ -8,62 +8,82 @@
         <h1>ADMIN PANEL</h1>
     </div>
 
-    <h2> List Of Classes: </h2>
+    <h2> Registered Students: </h2>
 
 <br>
 <br>
 
 
-{% for class in classes %}
-    {% if class == 'new_table' or class =='StudentRecord' or class =='TeacherRecord'%}
-       {%continue%}
-    {%endif%}
+ 
+  <table class="table-stripped table-responsive table table-bordered">
+   <tr>
+    <th>Id</th>
+    <th>Name</th>
+    <th>Email</th>
+    <th>DOB</th>
+    <th>Action</th>
+   </tr>
+    {% for student in students %}
 
-<div class=" btn-group-justified">
-    <a href="/classes/{{class}}" class="btn btn-info btn-sm"  >{{class}}</a>
-    <a href="/deleteclass/{{class}}" class="btn btn-danger btn-sm "  onclick="return confirm('Are You Sure For Delete?')" >Delete Class</span></a>
-</div>
-    {% endfor %}
+     <tr>
+        
+
+                  <td>{{student.0}}</td>
+                  <td>{{student.1}}</td>
+                  <td>{{student.3}}</td>
+                  <td>{{student.4}}</td>
+                  <td>
+
+                <a href="" class="btn btn-warning btn-xs" >Edit</a>
+                <a href="" class="btn btn-danger btn-xs" onclick="return confirm('Are You Sure For Delete?')">Delete</a>
+                  </td>
+
+     </tr>
+
+       {% endfor %}
+
+  </table>
+
+
+
+
+
+<br>
+<br>
+
+    <h2> Registered Teachers: </h2>
+
+ <table class="table-stripped table-responsive table table-bordered">
+   <tr>
+    
+    <th> Teacher Name</th>
+    <th>Email</th>
+    <th>Action</th>
+   </tr>
+    {% for teacher in teachers %}
+
+     <tr>
+        
+
+                  <td>{{teacher.0}}</td>
+                  <td>{{teacher.1}}</td>
+                  <td>
+
+                <a href="" class="btn btn-warning btn-xs" >Edit</a>
+                <a href="" class="btn btn-danger btn-xs" onclick="return confirm('Are You Sure For Delete?')">Delete</a>
+                    </td>
+    
+
+     </tr>
+
+       {% endfor %}
+
+  </table>
+
+
+
 
     </div>
-
-
-<div class="container">
-
-    <h2>Create a New Class <button type="button" class="btn btn-success  pull-right" data-toggle="modal" data-target="#createClass">Create a Class</button></h2>
-
-</div>
-
-<div id="createClass" class="modal fade" role="dialog">
-
-
-   <div class="modal-dialog">
-      <div class="modal-content">
-         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title">Create a New Class</h4>
-
-         </div>
-         <div class="modal-body">
-            <form action="/create" method="POST" enctype="multipart/form-data">
-               <div class="form-group">
-                  <label>Class Name:</label>
-                  <input type="text" class="form-control" name="classname" required="1">
-               </div>
-
-               <div class="form-group">
-                  <button class="btn btn-primary" type="submit">Create</button>
-               </div>
-            </form>
-         </div>
-           <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-
-           </div>
-         </div>
-   </div>
-
-</div>
 
       {% include "footer.html" %}
 

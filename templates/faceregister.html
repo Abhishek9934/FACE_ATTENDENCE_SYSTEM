@@ -1,0 +1,47 @@
+{% include "header.html" %}
+
+<link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
+
+{% block body %}
+<div class="container">
+  <h1 class="text-center"> Register Your Class </h1>
+
+</div>
+{%for image in images%}
+
+ <div class="container well" >
+  <img class="thumbnail" src="data:;base64,{{ image }}" style="width: 100px; height:125px;margin:0 auto;"/>
+
+
+  <form action="" method="POST" enctype="multipart/form-data">
+
+    <div>
+        <label>Entry No:</label>
+      <input type="text" class="form-control" name="id" >
+    </div>
+
+     <div class="form-group">
+      <label>Name:</label>
+      <input type="text" class="form-control" name="name">
+   </div>
+
+   <div class="form-group">
+      <button class="btn btn-primary" type="submit"> Register </button>
+   </div>
+</form>
+
+ </div>
+
+
+
+ {% endfor %}
+
+
+
+{% include "footer.html" %}
+
+{% endblock %}
+
+<script type="text/javascript" src="{{url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
+<script type="text/javascript" src="{{url_for('static', filename = 'js/bootstrap.min.js')}}"></script>
+
