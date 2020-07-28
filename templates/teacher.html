@@ -74,10 +74,10 @@
                                   <label>Select Class:</label>
                                       <select class="form-control" name="classname">
                                         {% for i in classes %}
-                                              {% if i == 'new_table' or i =='StudentRecord' or i== 'TeacherClasses' or i=='TeacherRecord'%}
-                                                   {%continue%}
+                                              {% if i != 'new_table' and i !='StudentRecord' and i!= 'TeacherClasses' and i!='TeacherRecord'%}
+                                                    <option> {{i}}</option>
                                                 {%endif%}
-                                             <option> {{i}}</option>
+                                           
                                           {%endfor%}
                                       </select>
                                </div>

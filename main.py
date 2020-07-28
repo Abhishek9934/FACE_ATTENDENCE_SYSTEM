@@ -12,6 +12,7 @@ from mtcnn import MTCNN
 # import facenet as 
 import statistics
 
+from keras.models import load_model
 
 
 from sklearn.metrics import accuracy_score
@@ -21,8 +22,10 @@ from sklearn.svm import SVC
 
 
 embedder = MTCNN()
-detector = FaceNet()
+# detector = FaceNet()
 
+facenet_model = load_model('facenet_keras.h5')
+print('Loaded Model')
 
 def CONNECTION():
     mydb =  mysql.connector.connect(
@@ -35,12 +38,6 @@ def CONNECTION():
     )
     return mydb
 
-
-
-# def drawBoxes(image , a,b,c,d):
-
-#     cv2.rectangle(image, (a, b),(a+ c, b + d),(0,155,255)  , 2)
-#     cv2.imwrite("ivan_drawn.jpg", cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
 
 
 
@@ -71,6 +68,16 @@ def drawBoxes(results, image):
 
 
 
+def getEmbeddings(face):
+    face = face.astype('float32')
+
+    mean ,std = face.mean() , face.std()
+    face = (face - mean) /std
+
+    sample = np.expand_dims(face , axis =0)
+    var = facenet_model.predict(sample)
+    return var[0]
+
 def mark_attendence(face , table):
     mydb = CONNECTION()
     # print(table)
@@ -85,7 +92,7 @@ def mark_attendence(face , table):
 
     r = cursor.fetchall()
     if (len(r)==0):
-        q= f"ALTER TABLE `database`.`{table}` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
+        q= f"ALTER TABLE `MyDatabase`.`{table}` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
         cursor.execute(q)
 
     mark = f"UPDATE `{table}` SET `{today}`= 1 WHERE name= %s"
@@ -136,7 +143,7 @@ def index():
         cursor.execute(query,(today,))
         r = cursor.fetchall()
         if (len(r)==0):
-            q= f"ALTER TABLE `database`.`{table}` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
+            q= f"ALTER TABLE `MyDatabase`.`{table}` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
             cursor.execute(q)
 
     return render_template('index.html', classes = table_list)
@@ -171,8 +178,7 @@ def markattendace(id):
 
         pixels = np.asarray(imagede)
         # pixels = np.flip(pixels,axis = 0 )
-        print(pixels)
-        print("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+        print("loading training data")
         # img = cv2.imread(file.filename)
         # print(img)
 
@@ -190,20 +196,34 @@ def markattendace(id):
         # fit model
         model = SVC(kernel='linear', probability=True)
         model.fit(trainX, trainy)
+		print("face detection started")
+        results = embedder.detect_faces(pixels)
+        facelist = []
+        for result in results:
 
-        detector = FaceNet()
-        # frame = cv2.imread()
-        # print(frame)
-        detections = detector.extract(pixels)
-        # print(detections)
+            bounding_box = result['box']
+            #keypoints = result['keypoints']
+            # drawBoxes(bounding_box,keypoints)
+            #face_locations.append(bounding_box)
+            x1 = bounding_box[0]
+            y1 = bounding_box[1]
+            width = bounding_box[2]
+            height = bounding_box[3]
+            x1,y1 = abs(x1) ,abs(y1)
+            x2,y2 = x1+width , y1+height
 
-            # Initialize an array for the name of the detected users
-        face_names = []
-        face_locations=[]
-        for detection in detections:
-                # See if the face is a match for the known face(s)
-                # name= 'UNKNOWN'
-            face_encoding = detection['embedding']
+            face = pixels[y1:y2,x1:x2]
+
+            image =  Image.fromarray(face)
+            image = image.resize((160,160))
+            crop_face = np.asarray (image)
+            facelist.append(crop_face)
+
+        X = np.asarray(facelist)
+        print("embeddings started")		
+    
+        for f in X:
+            face_encoding = getEmbeddings(f)
             sample = np.expand_dims(face_encoding , axis =0)
             yhat_class = model.predict(sample)
             yhat_prob = model.predict_proba(sample)
@@ -220,7 +240,7 @@ def markattendace(id):
             
             if(name):
                 mark_attendence(str(name), table)
-                detection['name'] = name
+
         
         return redirect(url_for('facultyhome',id= id))
 
@@ -229,7 +249,7 @@ def markattendace(id):
 
 
 
-#################################################### ADMIN PANEL ROUTES ##################################################
+######################ADMIN PANEL ROUTES ##################################################
 
 @app.route('/login',methods= ['GET','POST'])
 def login():
@@ -350,7 +370,7 @@ def update(table):
 
 @app.route('/delete/<string:table>/<string:id>',methods = ['GET'])
 def delete(table,id):
-    flash("Record Has been Deleted Successful")
+    flash("Record Has been Deleted Successfully")
     mydb = CONNECTION()
     cursor = mydb.cursor()
     cursor.execute(f"DELETE FROM {table} WHERE id = %s" ,(id,))
@@ -454,7 +474,7 @@ def studenthome(id):
             cur = mydb.cursor()
             if table == 'new_table' or table == 'StudentRecord' or table == 'TeacherRecord' or table == 'TeacherClasses':
                 continue
-            q= f"SELECT 1 FROM {table} WHERE Id =%s"
+            q= f"SELECT 1 FROM `{table}` WHERE Id =%s"
             cur.execute(q,(id,))
             flag = cur.fetchall()
             if (len(flag)>= 1):
@@ -678,7 +698,7 @@ def classcreate(name):
     cur.close()
     cursor = mydb.cursor()
 
-    query = f"CREATE TABLE `database`.`{classname}` (`Id` VARCHAR(45) NULL,`name` VARCHAR(45) NULL );"
+    query = f"CREATE TABLE `MyDatabase`.`{classname}` (`Id` VARCHAR(45) NULL,`name` VARCHAR(45) NULL );"
     cursor.execute(query)
     mydb.commit()
     cursor.close()
@@ -690,10 +710,10 @@ def classcreate(name):
 @app.route('/deleteclass/<string:table>/<string:name>')
 def deleteclass(table , name):
 
-    query = f"DROP TABLE `database`.`{table}`;"
+    query = f"DROP TABLE `MyDatabase`.`{table}`;"
     mydb = CONNECTION()
     cur = mydb.cursor()
-    q= "DELETE FROM `database`.`TeacherClasses` WHERE ClassName = %s" 
+    q= "DELETE FROM `MyDatabase`.`TeacherClasses` WHERE ClassName = %s" 
     cur.execute(q,(table,))
     cursor = mydb.cursor()
     cursor.execute(query)
