@@ -31,9 +31,9 @@ def CONNECTION():
     mydb =  mysql.connector.connect(
 
         host="localhost",
-        user="root",
+        user="admin",
         passwd="Abhishek@6204",
-        database="database",
+        database="MyDatabase",
         use_pure="True"
     )
     return mydb
@@ -125,7 +125,7 @@ def index():
         cursor = mydb.cursor()
         today = datetime.date.today()
         # today = today.strftime("%b,%d,%Y")
-        # print(today)
+        print("jhjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj")
         try:
             cursor.execute("SHOW TABLES")
             res = cursor.fetchall()
@@ -291,9 +291,6 @@ def admin():
 
 @app.route('/classes/<string:table>')
 def database(table):
-    # print(g.user)
-    # if g.user == 'admin':
-        # session.pop('user',None)
     try:
         mydb = CONNECTION()
         cursor = mydb.cursor()
@@ -301,7 +298,20 @@ def database(table):
 
             cursor.execute(f"SELECT * FROM {table}")
             res= cursor.fetchall()
+            print(type(res))
+            result = []
+            for r in res:
+                s=0
+                for i in range(2,len(r)):
+                    s=s+r[i]
+                atper = (s/(len(r)-2)) * 100
+                r1 = list(r)
+                r1.insert(2,atper)
+                result.append(r1)
+
             col= cursor.column_names
+            col = list(col)
+            col.insert(2,'Attendance %')
         except mysql.connector.Error as err:
             print(err)
             print("Error Code:", err.errno)
@@ -309,7 +319,7 @@ def database(table):
             print("Message", err.msg)
             return err.msg
         
-        return render_template('database.html',att= res ,col= col,l=len(col) , classname = table)
+        return render_template('database.html',att= result ,col= col,l=len(col) , classname = table)
 
 
     except Exception as e:
@@ -498,18 +508,6 @@ def delete(table,id):
 @app.route('/export/<string:table>')
 def export(table):
     try:
-
-        today = datetime.date.today()
-        start_date = datetime.date(2020, 7, 6)
-
-        delta = datetime.timedelta(days=1)
-        s=''
-        while start_date < today:
-            s = s+'`'+str(start_date)+'`,'
-            start_date += delta
-
-        s=s+ '`'+str(today)+'`'
-        # print (s)
         mydb = CONNECTION()
         cursor = mydb.cursor()
         query = f"SELECT Id,name,{s} FROM {table}"
@@ -748,8 +746,8 @@ def register():
         return e
 
 
-@app.route('/registerclass/<string:table>' ,methods = ['GET','POST'])
-def registerclass(table):
+@app.route('/registerclass/<string:table>/<string:id>' ,methods = ['GET','POST'])
+def registerclass(table,id):
     try:
         if request.method == 'POST':
             file = request.files['file']
@@ -783,7 +781,7 @@ def registerclass(table):
                     images.append(image)
             # print("xiohifdiafieajfijifjeij")
             # print(images[1])
-            return render_template('faceregister.html', images = images ,table = table)
+            return render_template('faceregister.html',l= len(detections), images = images ,table = table , id = id)
 
         return redirect(url_for('index'))
 
@@ -792,6 +790,48 @@ def registerclass(table):
         return e
 
 
+
+
+
+@app.route('/classregface/<string:table>/<string:id>', methods=['GET','POST'])
+def register_all_face(table,id):
+    try:
+        if request.method == 'POST':
+            form = request.form
+            # print(form)
+            l = int(request.form['length'])
+            # print(l)
+            # # l = len(form)/2+1
+            mydb= CONNECTION()
+            cursor=mydb.cursor()
+            for i in range(1,l+1):
+                idx = f"id{i}"
+                name = f"name{i}"
+
+                iddata = form[idx]
+                namedata = form[name]
+                try:
+                    query = f"INSERT INTO `{table}` (Id,name) VALUES (%s,%s)"
+                    cursor.execute(query,(iddata,namedata,))
+                    mydb.commit()
+
+                except mysql.connector.Error as err:
+                    print(err)
+                    print("Error Code:", err.errno)
+                    print("SQLSTATE", err.sqlstate)
+                    print("Message", err.msg)
+                    return err.msg
+
+
+                # print(iddata,namedata)
+
+
+
+            return redirect (url_for('facultyhome',id = id))
+
+
+    except Exception as e:
+        return e       
 
 
 
@@ -972,7 +1012,7 @@ def logout():
 if __name__== "__main__":
     app.jinja_env.add_extension('jinja2.ext.loopcontrols')
 
-    app.run(debug=True , threaded = False)
+    app.run(host='0.0.0.0',port=9000, debug=True , threaded =True)
 
 
 
