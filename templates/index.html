@@ -4,8 +4,12 @@
 
 {% block body %}
 <div class="container">
-     <h1 class="jumbotron text-center">Welcome to Face Attendence System</h1>
+  <div class="well">
+     <h1 class=" text-center">    <img style="width: 100px; height:100px;" src="static/IIT.png">
+
+Welcome to Face Attendance System</h1>
 </div>
+  </div>
 <div class="container">
 
 {% with messages = get_flashed_messages() %}
@@ -37,7 +41,7 @@
     <div class="col-md-6  container">
 <!--      <img class="img-thumbnail" src="static/view.jpeg" alt="Image">-->
 
-        <input type="image" src="static/student.jpeg"  class="img-thumbnail submit" data-toggle="modal" data-target="#student"/>
+        <input type="image" src="static/student.jpeg" style="width: 200px;height: 200px;" class="img-thumbnail submit" data-toggle="modal" data-target="#student"/>
 
          <h3>Student Login</h3>
     </div>
@@ -47,7 +51,7 @@
     <div class="col-md-6  container">
 <!--      <img class="img-thumbnail" src="static/view.jpeg" alt="Image">-->
 
-        <input type="image" src="static/teacher.png" class="img-thumbnail submit" data-toggle="modal" data-target="#teacher"/>
+        <input type="image" src="static/faculty.jpeg" style="width: 200px;height: 200px;" class="img-thumbnail submit" data-toggle="modal" data-target="#teacher"/>
 
          <h3>Faculty Login</h3>
     </div>
@@ -276,13 +280,15 @@
 </div>
 
 
+<br>
+<br>
+
+
+      {% include "footer.html" %}
+
 </div>
 
 
-<br>
-<br>
-
-      {% include "footer.html" %}
 
 
 {% endblock %}

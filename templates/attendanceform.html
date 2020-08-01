@@ -1,0 +1,54 @@
+{% include "header.html" %}
+
+<link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
+
+{% block body %}
+<div class="container">
+  <h1 class="text-center"> Mark Class Attendance </h1>
+
+  <img class="thumbnail" src="data:;base64,{{ image }}" style="width: 100%;"/>
+
+</div>
+
+
+ <div class="container" >
+
+
+  <form action="/attendanceform/{{table}}/{{id}}" method="POST" enctype="multipart/form-data">
+  	<input type="hidden" name="length" value="{{l}}">
+   <table class="table  table-striped table-bordered">
+   <th>Student Name</th>
+   <th> Present/Absent</th>
+
+   {% for student in students %}
+   <tr>
+     <div class="form-group">
+      <td> <label>{{student[0]}}</label></td>
+       <td><input class="form-control" type="text" name="atten{{loop.index}}" value="{{student[1]}}" >
+       <input class="form-control" type="hidden" name="name{{loop.index}}" value="{{student[0]}}"></td>
+     </div>
+   </tr>
+
+   {%endfor%}
+  </table>
+   <div class="form-group">
+      <button class="btn btn-success pull-right" style="width: 200px;" type="submit"> Submit </button>
+   </div>
+</form>
+
+ </div>
+
+<br>
+<br>
+
+
+<div class="container">
+
+{% include "footer.html" %}
+</div>
+
+{% endblock %}
+
+<script type="text/javascript" src="{{url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
+<script type="text/javascript" src="{{url_for('static', filename = 'js/bootstrap.min.js')}}"></script>
+

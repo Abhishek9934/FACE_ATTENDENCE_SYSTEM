@@ -42,29 +42,9 @@ def CONNECTION():
 
 
 
-def drawBoxes(results, image):
-            # Draw a label with a name below the face
-    font = cv2.FONT_HERSHEY_DUPLEX
-    s= 'Marking your Attendence. Please Wait.'
-    cv2.putText(image,s,(50 , 40 ), font, 0.9, (0, 255, 255), 2)
+def drawBoxes(image, bounding_box):
+        cv2.rectangle(image,(bounding_box[0], bounding_box[1]),(bounding_box[0]+bounding_box[2], bounding_box[1] + bounding_box[3]),(255,0,0),2)
 
-    for result in results:
-        bounding_box = result['box']
-        keypoints = result['keypoints']
-            
-        cv2.rectangle(image,
-                      (bounding_box[0], bounding_box[1]),
-                      (bounding_box[0]+bounding_box[2], bounding_box[1] + bounding_box[3]),
-                      (0,155,255),
-                      2)
-        cv2.putText(image, result['name'], (bounding_box[0], bounding_box[1]), font, 1.0, (0, 0, 255), 1)
-
-
-        cv2.circle(image,(keypoints['left_eye']), 2, (0,155,255), 2)
-        cv2.circle(image,(keypoints['right_eye']), 2, (0,155,255), 2)
-        cv2.circle(image,(keypoints['nose']), 2, (0,155,255), 2)
-        cv2.circle(image,(keypoints['mouth_left']), 2, (0,155,255), 2)
-        cv2.circle(image,(keypoints['mouth_right']), 2, (0,155,255), 2)
 
 
 
@@ -85,9 +65,6 @@ def mark_attendence(face , table):
     today = datetime.date.today()
     
 
-    # print(today)
-    # today = today.strftime("%b,%d,%Y")
-    # print(today)
     try:
         query = f"SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table}' AND COLUMN_NAME = %s; "
         cursor.execute(query,(today,))
@@ -120,39 +97,10 @@ app.config["SECRET_KEY"] = "secret"
 @app.route('/')
 def index():
     try:
-        session.pop('user',None)
-        mydb = CONNECTION()
-        cursor = mydb.cursor()
-        today = datetime.date.today()
-        # today = today.strftime("%b,%d,%Y")
-        print("jhjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj")
-        try:
-            cursor.execute("SHOW TABLES")
-            res = cursor.fetchall()
-            table_list = [x[0] for x in res]
-
-            for table in table_list:
-                if (table=='StudentRecord'  or table=='TeacherRecord' or table=='new_table' or table=='TeacherClasses'):
-                    continue
-                query = f"SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table}' AND COLUMN_NAME = %s;"
-                cursor.execute(query,(today,))
-                r = cursor.fetchall()
-                if (len(r)==0):
-                    q= f"ALTER TABLE `MyDatabase`.`{table}` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
-                    cursor.execute(q)
-
-        except mysql.connector.Error as err:
-                print(err)
-                print("Error Code:", err.errno)
-                print("SQLSTATE", err.sqlstate)
-                print("Message", err.msg)
-                return err.msg
-        
-
-        return render_template('index.html', classes = table_list)
+        return render_template('index.html')
 
     except Exception as e:
-        return e
+        return enewteacher
 
 ########################################### Loads the face recogniser #######################################################
 
@@ -161,6 +109,7 @@ def index():
 def markattendace(id):
     try:
         if(request.method == 'POST'):
+            names = []
             file = request.files['file']
             table = request.form['classname']
 
@@ -168,6 +117,7 @@ def markattendace(id):
             imagede = imagede.convert('RGB')
 
             pixels = np.asarray(imagede)
+
             # pixels = np.flip(pixels,axis = 0 )
             print("loading training data")
             data = np.load('training-dataset-embeddings.npz')
@@ -189,8 +139,8 @@ def markattendace(id):
             for result in results:
 
                 bounding_box = result['box']
-                #keypoints = result['keypoints']
-                # drawBoxes(bounding_box,keypoints)
+                
+                drawBoxes(pixels,bounding_box)
                 #face_locations.append(bounding_box)
                 x1 = bounding_box[0]
                 y1 = bounding_box[1]
@@ -207,7 +157,14 @@ def markattendace(id):
                 facelist.append(crop_face)
 
             X = np.asarray(facelist)
-            print("embeddings started")     
+            print("embeddings started")
+            img2= pixels
+            img2 = img2[:,:,::-1]
+
+
+            success, encoded_image = cv2.imencode('.jpg',img2)
+            content2 = encoded_image.tobytes()
+            classphoto = b64encode(content2).decode("utf-8")     
         
             for f in X:
                 face_encoding = getEmbeddings(f)
@@ -222,20 +179,75 @@ def markattendace(id):
                 predict_names = out_encoder.inverse_transform(yhat_class)
 
                 name = predict_names[0]
-                print (name)
+                #print (name)
 
                 
                 if(name):
                     mark_attendence(str(name), table)
 
-            
-            return redirect(url_for('facultyhome',id= id))
+                    # names.append(name)
 
-        return redirect(url_for('index'))
+            mydb = CONNECTION()
+            cursor=mydb.cursor()
+            today = datetime.date.today()
+            try:
+                query = f"SELECT name,`{today}` FROM `{table}`"
+                cursor.execute(query)
+                res = cursor.fetchall()
+
+                # print("jakkkkkkkk",res)
+                # print(type(classphoto))
+
+            except mysql.connector.Error as err:
+                print(err)
+                print("Error Code:", err.errno)
+                print("SQLSTATE", err.sqlstate)
+                print("Message", err.msg)
+                return err.msg
+
+            # flash("Attendance Marked Successfully!")
+            return render_template('attendanceform.html',table= table,id= id ,image=classphoto, students= res , l = len(res))
+
+        return redirect(url_for('facultyhome',id = id))
 
     except Exception as e:
         return e
 
+
+@app.route('/attendanceform/<string:table>/<string:id>' , methods = ['GET','POST'])
+def attendanceform(table,id):
+    try:
+        if request.method == 'POST':
+            form = request.form
+            print("formmmmmmm,",form)
+            mydb = CONNECTION()
+            cursor=mydb.cursor()
+            today = datetime.date.today()
+            l = int(request.form['length'])
+            for i in range(1,l+1):
+                idx = f"atten{i}"
+                name = f"name{i}"
+                atten = form[idx]
+                namedata = form[name]
+
+                try:
+
+                    query = f" UPDATE `{table}` SET `{today}`= %s WHERE name= %s "
+                    cursor.execute(query,(atten,namedata,))
+                    mydb.commit()
+
+                except mysql.connector.Error as err:
+                    print(err)
+                    print("Error Code:", err.errno)
+                    print("SQLSTATE", err.sqlstate)
+                    print("Message", err.msg)
+                    return err.msg
+            flash("Attendance Marked Successfully!")
+        
+            return redirect(url_for('facultyhome',id = id))
+
+    except Exception as e:
+        return e
 
 
 ######################ADMIN PANEL ROUTES ##################################################
@@ -288,30 +300,48 @@ def admin():
         return e
 
 
-
+###
 @app.route('/classes/<string:table>')
 def database(table):
     try:
         mydb = CONNECTION()
         cursor = mydb.cursor()
+        today = datetime.date.today()
+
         try:
 
+            query1 = f"SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table}' AND COLUMN_NAME = %s;"
+            cursor.execute(query1,(today,))
+            r = cursor.fetchall()
+            if (len(r)==0):
+                q= f"ALTER TABLE `MyDatabase`.`{table}` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
+                cursor.execute(q)
             cursor.execute(f"SELECT * FROM {table}")
             res= cursor.fetchall()
-            print(type(res))
+            #print("dkdkkdk",res)
             result = []
             for r in res:
                 s=0
-                for i in range(2,len(r)):
+
+                # print(type(r[2]))
+                for i in range(3,len(r)):
                     s=s+r[i]
-                atper = (s/(len(r)-2)) * 100
+                atper = (s/(len(r)-3)) * 100
                 r1 = list(r)
-                r1.insert(2,atper)
+                s = str(type(r1[2]))
+                # print("sjssj" , s)
+                if (s == "<class 'bytearray'>"):
+                    
+                    image = b64encode(r1[2]).decode("utf-8")
+                    r1[2]=image
+                r1.insert(3,atper)
                 result.append(r1)
+
 
             col= cursor.column_names
             col = list(col)
-            col.insert(2,'Attendance %')
+            col.insert(3,'Attendance %')
+            # print(col)
         except mysql.connector.Error as err:
             print(err)
             print("Error Code:", err.errno)
@@ -325,7 +355,7 @@ def database(table):
     except Exception as e:
         return e
 
-
+###
 @app.route('/insert/<string:table>' ,methods = ['POST'])
 def insert(table):
     try:
@@ -334,12 +364,15 @@ def insert(table):
             flash("Data Inserted Successfully")
             name = request.form['name']
             id = request.form['id']
+            file = request.files['file']
+            data = file.read()
+            print(type(data))
             mydb = CONNECTION()
             cursor = mydb.cursor()
             try:
 
-                query = f"INSERT INTO {table} (Id,name) VALUES (%s,%s)"
-                cursor.execute(query,(id,name,))
+                query = f"INSERT INTO `{table}` (Id,name,Image) VALUES (%s,%s,%s)"
+                cursor.execute(query,(id,name,data))
                 mydb.commit()
             except mysql.connector.Error as err:
                 print(err)
@@ -356,6 +389,7 @@ def insert(table):
     except Exception as e:
         return e
 
+####
 @app.route('/update/<string:table>', methods = ['POST','GET'])
 def update(table):
     try:
@@ -363,11 +397,13 @@ def update(table):
             id = request.form['id']
             newid = request.form['newid']
             name = request.form['name']
+            file = request.files['file']
+            data = file.read()
             mydb = CONNECTION()
             cursor = mydb.cursor()
             try:
-                query = f" UPDATE {table} SET Id =%s ,name=%s WHERE Id= %s "
-                cursor.execute(query,(newid,name,id,))
+                query = f" UPDATE {table} SET Id =%s ,name=%s,Image=%s WHERE Id= %s "
+                cursor.execute(query,(newid,name,data,id,))
                 flash("Data Updated Successfully")
                 mydb.commit()
             except mysql.connector.Error as err:
@@ -490,7 +526,7 @@ def delete(table,id):
         flash("Record Has been Deleted Successfully")
         mydb = CONNECTION()
         cursor = mydb.cursor()
-        cursor.execute(f"DELETE FROM {table} WHERE id = %s" ,(id,))
+        cursor.execute(f"DELETE FROM {`table}` WHERE id = %s" ,(id,))
         mydb.commit()
     except mysql.connector.Error as err:
         print(err)
@@ -510,7 +546,7 @@ def export(table):
     try:
         mydb = CONNECTION()
         cursor = mydb.cursor()
-        query = f"SELECT Id,name,{s} FROM {table}"
+        query = f"SELECT Id,name,{s} FROM `{table}`"
         cursor.execute(query)
         data = cursor.fetchall()
         # print(data)
@@ -658,7 +694,7 @@ def studentpage(table,id):
                 # print(l)
                 cursor.close()
                 cur=  mydb.cursor()
-                query = f"SELECT * FROM {table} WHERE Id =%s"
+                query = f"SELECT * FROM `{table}` WHERE Id =%s"
                 cur.execute(query,(id,))
                 res = cur.fetchall()
                 names = cur.column_names
@@ -690,12 +726,13 @@ def join(id):
                 mydb = CONNECTION()
                 cursor = mydb.cursor()
                 try:
-                    cursor.execute(f"SELECT Name FROM StudentRecord WHERE Id = %s",(id,))
+                    cursor.execute(f"SELECT Name,Image FROM StudentRecord WHERE Id = %s",(id,))
                     res = cursor.fetchall()
                     name = res[0][0]
-                    query = f"INSERT INTO {table} (Id,name) VALUES (%s,%s)"
+                    data = res[0][1]
+                    query = f"INSERT INTO `{table}` (Id,name,Image) VALUES (%s,%s,%s)"
 
-                    cursor.execute(query, (id, name,))
+                    cursor.execute(query, (id, name,data,))
                     mydb.commit()
                 except mysql.connector.Error as err:
                     print(err)
@@ -759,9 +796,11 @@ def registerclass(table,id):
 
             pixels = np.asarray(imagede)
             img = pixels
+            img = img[:,:,::-1]
+
             # img = cv2.imread(file.filename)
             images = []
-
+            content = []
             detections = embedder.detect_faces(pixels)
             # print(detections[0])
 
@@ -777,7 +816,7 @@ def registerclass(table,id):
                     content2 = encoded_image.tobytes()
                     image = b64encode(content2).decode("utf-8")
 
-                
+                    # print("ffffff",type(image))
                     images.append(image)
             # print("xiohifdiafieajfijifjeij")
             # print(images[1])
@@ -807,13 +846,17 @@ def register_all_face(table,id):
             for i in range(1,l+1):
                 idx = f"id{i}"
                 name = f"name{i}"
+                xx = f"image{i}"
 
                 iddata = form[idx]
                 namedata = form[name]
+                data = form[xx]
+                #print(data)
                 try:
-                    query = f"INSERT INTO `{table}` (Id,name) VALUES (%s,%s)"
-                    cursor.execute(query,(iddata,namedata,))
-                    mydb.commit()
+                    if(iddata!='' and namedata!=''):
+                        query = f"INSERT INTO `{table}` (Id,name,Image) VALUES (%s,%s,%s)"
+                        cursor.execute(query,(iddata,namedata,data))
+                        mydb.commit()
 
                 except mysql.connector.Error as err:
                     print(err)
@@ -821,6 +864,7 @@ def register_all_face(table,id):
                     print("SQLSTATE", err.sqlstate)
                     print("Message", err.msg)
                     return err.msg
+            flash("Students registered Successfully. ")
 
 
                 # print(iddata,namedata)
@@ -848,7 +892,7 @@ def registerstudent(table):
             cursor = mydb.cursor()
             try:
 
-                query = f"INSERT INTO {table} (Id,name) VALUES (%s,%s)"
+                query = f"INSERT INTO `{table}` (Id,name) VALUES (%s,%s)"
 
                 cursor.execute(query, (id, name,))
                 mydb.commit()
@@ -934,15 +978,18 @@ def facultyhome(id):
 def classcreate(name):
     try:
         classname = request.form['classname']
-        print(name)
+        # print(name)
 
-        print(classname)
+        # print(classname)
         mydb = CONNECTION()
         try:
             cursor = mydb.cursor()
 
-            query = f"CREATE TABLE `MyDatabase`.`{classname}` (`Id` VARCHAR(45) NULL,`name` VARCHAR(45) NULL );"
+            query = f"CREATE TABLE `MyDatabase`.`{classname}` (`Id` VARCHAR(45) NULL,`name` VARCHAR(45) NULL ,`Image` LONGBLOB NULL);"
             cursor.execute(query)
+            today = datetime.date.today()
+            q= f"ALTER TABLE `MyDatabase`.`{classname}` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
+            cursor.execute(q)
 
             cur = mydb.cursor()
             q = f"INSERT INTO TeacherClasses (TeacherName,ClassName) VALUES (%s,%s)"
@@ -1012,7 +1059,7 @@ def logout():
 if __name__== "__main__":
     app.jinja_env.add_extension('jinja2.ext.loopcontrols')
 
-    app.run(host='0.0.0.0',port=9000, debug=True , threaded =True)
+    app.run(host='0.0.0.0',port=9999, debug=True , threaded =True)
 
 
 
