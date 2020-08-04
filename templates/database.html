@@ -160,7 +160,7 @@
 <!--        <th>Id</th>-->
 <!--        <th>Name</th>-->
       {% for c in col %}
-            {%if c != 'Image'%}
+            {%if c != 'Image' and c != 'FaceData' %}
       			<th> {{c}} </th>
             {%endif%}
 
@@ -174,7 +174,7 @@
 
     			{% for i in range(l)  %}
 
-                  {% if i!=2 %}
+                  {% if i!=2 and i!=3 %}
                   <td>{{index[i]}}</td>
     			        {% endif %}
                   {% endfor %}

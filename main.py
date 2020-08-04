@@ -11,6 +11,7 @@ from PIL import Image
 from mtcnn import MTCNN
 # import facenet as 
 import statistics
+import pickle
 
 from keras.models import load_model
 
@@ -45,7 +46,8 @@ def CONNECTION():
 def drawBoxes(image, bounding_box):
         cv2.rectangle(image,(bounding_box[0], bounding_box[1]),(bounding_box[0]+bounding_box[2], bounding_box[1] + bounding_box[3]),(255,0,0),2)
 
-
+def distance(emb1, emb2):
+ return np.sum(np.square(emb1 - emb2))
 
 
 def getEmbeddings(face):
@@ -118,24 +120,37 @@ def markattendace(id):
 
             pixels = np.asarray(imagede)
 
-            # pixels = np.flip(pixels,axis = 0 )
-            print("loading training data")
-            data = np.load('training-dataset-embeddings.npz')
-            trainX, trainy = data['arr_0'], data['arr_1']
-            in_encoder = Normalizer(norm='l2')
-            trainX = in_encoder.transform(trainX)
-
-            # label encode targets
-            out_encoder = LabelEncoder()
-            out_encoder.fit(trainy)
-            trainy = out_encoder.transform(trainy)
-
-            # fit model
-            model = SVC(kernel='linear', probability=True)
-            model.fit(trainX, trainy)
             print("face detection started")
             results = embedder.detect_faces(pixels)
             facelist = []
+            # print("reusts" , results)
+            mydb = CONNECTION()
+            cursor=mydb.cursor()
+            today = datetime.date.today()        
+            query = f" SELECT name,FaceData,`{today}` FROM `{table}` "
+            cursor.execute(query)
+            res = cursor.fetchall()
+            print("reeeeeeeeeeeeesssssssss" , type(res[0][1]))
+
+            # embeddings = [pickle.loads(x[1]) for x in res]
+            embeddings = []
+            namelist = []
+            # AttendanceList = []
+            for x in res:
+                # x= list(x)
+                namelist.append(x[0])
+
+                s = x[1][1:]
+                s = s[:-2]
+                s= s.split()
+                arr = np.asarray(s)
+                y = arr.astype(np.float)
+                # print(y)
+                embeddings.append(y)
+                # d =  pickle.loads(x[1])
+                # print(d)
+
+
             for result in results:
 
                 bounding_box = result['box']
@@ -164,47 +179,35 @@ def markattendace(id):
 
             success, encoded_image = cv2.imencode('.jpg',img2)
             content2 = encoded_image.tobytes()
-            classphoto = b64encode(content2).decode("utf-8")     
-        
+            classphoto = b64encode(content2).decode("utf-8")   
+
+
+
             for f in X:
                 face_encoding = getEmbeddings(f)
-                sample = np.expand_dims(face_encoding , axis =0)
-                yhat_class = model.predict(sample)
-                yhat_prob = model.predict_proba(sample)
+                print("type fo face encodings",(face_encoding))
+                mylist = []
+                for embedding in embeddings:
+                    dist = distance(face_encoding , embedding)
+                    mylist.append(dist)
 
-                #getting name
+                print ("ududuud" , mylist)
 
-                class_index = yhat_class[0]
-                class_probability = yhat_prob[0, class_index] * 100
-                predict_names = out_encoder.inverse_transform(yhat_class)
+                arr = np.array(mylist)
+                minindex = np.argmin(arr)
 
-                name = predict_names[0]
-                #print (name)
+  
+                if(mylist[minindex] < 90):
+                    print("identified face " ,namelist[minindex])
 
-                
-                if(name):
-                    mark_attendence(str(name), table)
-
-                    # names.append(name)
+                    mark_attendence(namelist[minindex], table)
 
             mydb = CONNECTION()
             cursor=mydb.cursor()
-            today = datetime.date.today()
-            try:
-                query = f"SELECT name,`{today}` FROM `{table}`"
-                cursor.execute(query)
-                res = cursor.fetchall()
-
-                # print("jakkkkkkkk",res)
-                # print(type(classphoto))
-
-            except mysql.connector.Error as err:
-                print(err)
-                print("Error Code:", err.errno)
-                print("SQLSTATE", err.sqlstate)
-                print("Message", err.msg)
-                return err.msg
-
+            today = datetime.date.today()        
+            query = f" SELECT name,`{today}` FROM `{table}` "
+            cursor.execute(query)
+            res = cursor.fetchall()
             # flash("Attendance Marked Successfully!")
             return render_template('attendanceform.html',table= table,id= id ,image=classphoto, students= res , l = len(res))
 
@@ -219,7 +222,7 @@ def attendanceform(table,id):
     try:
         if request.method == 'POST':
             form = request.form
-            print("formmmmmmm,",form)
+           # print("formmmmmmm,",form)
             mydb = CONNECTION()
             cursor=mydb.cursor()
             today = datetime.date.today()
@@ -316,32 +319,49 @@ def database(table):
             if (len(r)==0):
                 q= f"ALTER TABLE `MyDatabase`.`{table}` ADD COLUMN `{today}` INT NULL DEFAULT 0;"
                 cursor.execute(q)
-            cursor.execute(f"SELECT * FROM {table}")
+            cursor.execute(f"SELECT * FROM `{table}`")
             res= cursor.fetchall()
-            #print("dkdkkdk",res)
+            # print("dkdkkdk",res)
             result = []
             for r in res:
                 s=0
 
                 # print(type(r[2]))
-                for i in range(3,len(r)):
+                for i in range(4,len(r)):
                     s=s+r[i]
-                atper = (s/(len(r)-3)) * 100
+                atper = (s/(len(r)-4)) * 100
+
                 r1 = list(r)
-                s = str(type(r1[2]))
-                # print("sjssj" , s)
-                if (s == "<class 'bytearray'>"):
-                    
-                    image = b64encode(r1[2]).decode("utf-8")
-                    r1[2]=image
-                r1.insert(3,atper)
+                # print("heeleoll" , r1)
+
+                # r1[3] = (r1[3]).decode("utf-8")
+                #r1[2] = bytearray(r1[2])
+               # if (s == "<class 'bytes'>"):    
+                # x = r1[2]
+                # print(type(x))
+               # print(x[2])
+                # if x[1]==57 and x[2]==106:
+                #     # image = x.decode("utf-8")
+                #     print("jfjfjjf")
+                # else:
+                #     print("jfjj")
+                    # image = b64encode(x).decode("utf-8")
+                    #r1[2]=image
+               # print(r1[2])
+                # s = str(type(r1[2]))
+                # # print("sjssj" , s)
+                # if (s == "<class 'bytearray'>"):    
+                #     image = b64encode(r1[2]).decode("utf-8")
+                #     r1[2]=image
+                r1.insert(4,atper)
                 result.append(r1)
+                print(r1)
 
 
             col= cursor.column_names
-            col = list(col)
+            col = list(col) 
             col.insert(3,'Attendance %')
-            # print(col)
+            print(col)
         except mysql.connector.Error as err:
             print(err)
             print("Error Code:", err.errno)
@@ -364,15 +384,47 @@ def insert(table):
             flash("Data Inserted Successfully")
             name = request.form['name']
             id = request.form['id']
-            file = request.files['file']
-            data = file.read()
-            print(type(data))
+            file = request.files['file']   
+
+            imagede = Image.open(file)
+            imagede = imagede.convert('RGB')
+
+            pixels = np.asarray(imagede)
+            img = pixels
+            img = img[:,:,::-1]
+            images = []
+            detections = embedder.detect_faces(pixels)
+            bounding_box = detections[0]['box']
+            x1 = bounding_box[0]
+            y1 = bounding_box[1]
+            width = bounding_box[2]
+            height = bounding_box[3]
+            x1 = abs(x1)
+            y1 = abs(y1)
+            x2 =  x1+width 
+            y2 = y1+height
+
+            face = pixels[y1:y2,x1:x2]
+
+            photo =  Image.fromarray(face)
+            photo = photo.resize((160,160))
+            crop_face = np.asarray (photo)
+            emd = getEmbeddings(crop_face)
+            emd = str(emd)
+
+            crop_image =  img[bounding_box[1]-20:bounding_box[1]+ bounding_box[3]+20,bounding_box[0]-20:bounding_box[0]+ bounding_box[2]+20]
+
+            if(crop_image.any()):
+                success, encoded_image = cv2.imencode('.jpg', crop_image)
+                content2 = (encoded_image).tobytes()
+                image = b64encode(content2).decode("utf-8")
+
             mydb = CONNECTION()
             cursor = mydb.cursor()
             try:
 
-                query = f"INSERT INTO `{table}` (Id,name,Image) VALUES (%s,%s,%s)"
-                cursor.execute(query,(id,name,data))
+                query = f"INSERT INTO `{table}` (Id,name,Image,FaceData) VALUES (%s,%s,%s,%s)"
+                cursor.execute(query,(id,name,image,emd,))
                 mydb.commit()
             except mysql.connector.Error as err:
                 print(err)
@@ -398,12 +450,48 @@ def update(table):
             newid = request.form['newid']
             name = request.form['name']
             file = request.files['file']
-            data = file.read()
+            
+            imagede = Image.open(file)
+            imagede = imagede.convert('RGB')
+            facelist = []
+            pixels = np.asarray(imagede)
+            img = pixels
+            img = img[:,:,::-1]
+            images = []
+            detections = embedder.detect_faces(pixels)
+            bounding_box = detections[0]['box']
+            x1 = bounding_box[0]
+            y1 = bounding_box[1]
+            width = bounding_box[2]
+            height = bounding_box[3]
+            x1 = abs(x1)
+            y1 = abs(y1)
+            x2 =  x1+width 
+            y2 = y1+height
+
+            face = pixels[y1:y2,x1:x2]
+
+            photo =  Image.fromarray(face)
+            photo = photo.resize((160,160))
+            crop_face = np.asarray (photo)
+            emd = getEmbeddings(crop_face)
+            emd = str(emd)
+
+            print(emd)
+            # emd = pickle.dumps(emd)
+
+            crop_image =  img[bounding_box[1]-20:bounding_box[1]+ bounding_box[3]+20,bounding_box[0]-20:bounding_box[0]+ bounding_box[2]+20]
+
+            if(crop_image.any()):
+                success, encoded_image = cv2.imencode('.jpg', crop_image)
+                content2 = (encoded_image).tobytes()
+                image = b64encode(content2).decode("utf-8")
+
             mydb = CONNECTION()
             cursor = mydb.cursor()
             try:
-                query = f" UPDATE {table} SET Id =%s ,name=%s,Image=%s WHERE Id= %s "
-                cursor.execute(query,(newid,name,data,id,))
+                query = f"UPDATE `{table}` SET Id =%s,name=%s,Image=%s,FaceData=%s WHERE Id= %s; "
+                cursor.execute(query,(newid,name,image,emd,id,))
                 flash("Data Updated Successfully")
                 mydb.commit()
             except mysql.connector.Error as err:
@@ -526,7 +614,7 @@ def delete(table,id):
         flash("Record Has been Deleted Successfully")
         mydb = CONNECTION()
         cursor = mydb.cursor()
-        cursor.execute(f"DELETE FROM {`table}` WHERE id = %s" ,(id,))
+        cursor.execute(f"DELETE FROM `{table}` WHERE id = %s" ,(id,))
         mydb.commit()
     except mysql.connector.Error as err:
         print(err)
@@ -541,30 +629,30 @@ def delete(table,id):
     return redirect(url_for('database',table= table))
 
 
-@app.route('/export/<string:table>')
-def export(table):
-    try:
-        mydb = CONNECTION()
-        cursor = mydb.cursor()
-        query = f"SELECT Id,name,{s} FROM `{table}`"
-        cursor.execute(query)
-        data = cursor.fetchall()
-        # print(data)
-        wb = Workbook()
-        ws = wb.active
-        ws.append(cursor.column_names)
+# @app.route('/export/<string:table>')
+# def export(table):
+#     try:
+#         mydb = CONNECTION()
+#         cursor = mydb.cursor()
+#         query = f"SELECT Id,name,{s} FROM `{table}`"
+#         cursor.execute(query)
+#         data = cursor.fetchall()
+#         # print(data)
+#         wb = Workbook()
+#         ws = wb.active
+#         ws.append(cursor.column_names)
 
-        for row in data:
-            ws.append(row)
+#         for row in data:
+#             ws.append(row)
 
-        workbook_name = f"{table}"
-        wb.save(workbook_name + ".xlsx")
+#         workbook_name = f"{table}"
+#         wb.save(workbook_name + ".xlsx")
 
-        flash('Your File Has Been Downloaded.')
-        return redirect(url_for('database', table=table))
+#         flash('Your File Has Been Downloaded.')
+#         return redirect(url_for('database', table=table))
 
-    except Exception as e:
-        return e
+#     except Exception as e:
+#         return e
 
 @app.route('/teacherlogin',methods = ['GET','POST'])
 def teacherlogin():
@@ -788,39 +876,52 @@ def registerclass(table,id):
     try:
         if request.method == 'POST':
             file = request.files['file']
-            # frame = file.read()
-            # img = file.read()
-
             imagede = Image.open(file)
             imagede = imagede.convert('RGB')
 
             pixels = np.asarray(imagede)
             img = pixels
             img = img[:,:,::-1]
-
-            # img = cv2.imread(file.filename)
             images = []
-            content = []
             detections = embedder.detect_faces(pixels)
-            # print(detections[0])
-
+            # print(detections)
+            facelist = []
+                
             for detection in detections:
 
                 bounding_box = detection['box']
-                # drawBoxes(img ,int ( bounding_box[0]) ,int(bounding_box[1]), int(bounding_box[2]), int(bounding_box[3]))
+                x1 = bounding_box[0]
+                y1 = bounding_box[1]
+                width = bounding_box[2]
+                height = bounding_box[3]
+                x1 = abs(x1)
+                y1 = abs(y1)
+                x2 =  x1+width 
+                y2 = y1+height
 
+                face = pixels[y1:y2,x1:x2]
+
+                photo =  Image.fromarray(face)
+                # print(photo)
+                # print("photosize" , photo.size)
+                photo = photo.resize((160,160))
+                # facelist.append(photo)
+
+                crop_face = np.asarray (photo)
+                # print(crop_face)
+                emd = getEmbeddings(crop_face)
+                facelist.append(emd)
                 crop_image =  img[bounding_box[1]-10:bounding_box[1]+ bounding_box[3]+15,bounding_box[0]-10:bounding_box[0]+ bounding_box[2]+15]
 
                 if(crop_image.any()):
                     success, encoded_image = cv2.imencode('.jpg', crop_image)
-                    content2 = encoded_image.tobytes()
+                    content2 = (encoded_image).tobytes()
                     image = b64encode(content2).decode("utf-8")
-
-                    # print("ffffff",type(image))
                     images.append(image)
-            # print("xiohifdiafieajfijifjeij")
-            # print(images[1])
-            return render_template('faceregister.html',l= len(detections), images = images ,table = table , id = id)
+
+
+            print(facelist)
+            return render_template('faceregister.html',embeddings = facelist,l= len(detections),images = images ,table = table , id = id)
 
         return redirect(url_for('index'))
 
@@ -837,7 +938,7 @@ def register_all_face(table,id):
     try:
         if request.method == 'POST':
             form = request.form
-            # print(form)
+            print("formmmm",form)
             l = int(request.form['length'])
             # print(l)
             # # l = len(form)/2+1
@@ -847,15 +948,20 @@ def register_all_face(table,id):
                 idx = f"id{i}"
                 name = f"name{i}"
                 xx = f"image{i}"
+                yy = f"embedding{i}"
 
                 iddata = form[idx]
                 namedata = form[name]
                 data = form[xx]
-                #print(data)
+                facedata = form[yy]
+                print(facedata)
+                # crop_face = np.asarray(facedata)
+                # print("ccccccccccccccccccccccccccccccccccccccccccccc",crop_face)
+
                 try:
                     if(iddata!='' and namedata!=''):
-                        query = f"INSERT INTO `{table}` (Id,name,Image) VALUES (%s,%s,%s)"
-                        cursor.execute(query,(iddata,namedata,data))
+                        query = f"INSERT INTO `{table}` (Id,name,Image,FaceData) VALUES (%s,%s,%s,%s)"
+                        cursor.execute(query,(iddata,namedata,data,facedata,))
                         mydb.commit()
 
                 except mysql.connector.Error as err:
@@ -881,34 +987,34 @@ def register_all_face(table,id):
 
 
 
-@app.route('/registerstudent/<string:table>',methods= ['GET','POST'])
-def registerstudent(table):
-    try:
-        if request.method == 'POST':
-            id = request.form['id']
-            name = request.form['name']
+# @app.route('/registerstudent/<string:table>',methods= ['GET','POST'])
+# def registerstudent(table):
+#     try:
+#         if request.method == 'POST':
+#             id = request.form['id']
+#             name = request.form['name']
 
-            mydb = CONNECTION()
-            cursor = mydb.cursor()
-            try:
+#             mydb = CONNECTION()
+#             cursor = mydb.cursor()
+#             try:
 
-                query = f"INSERT INTO `{table}` (Id,name) VALUES (%s,%s)"
+#                 query = f"INSERT INTO `{table}` (Id,name) VALUES (%s,%s)"
 
-                cursor.execute(query, (id, name,))
-                mydb.commit()
-            except mysql.connector.Error as err:
-                print(err)
-                print("Error Code:", err.errno)
-                print("SQLSTATE", err.sqlstate)
-                print("Message", err.msg)
-                return err.msg
-            cursor.close()
-            mydb.close()
+#                 cursor.execute(query, (id, name,))
+#                 mydb.commit()
+#             except mysql.connector.Error as err:
+#                 print(err)
+#                 print("Error Code:", err.errno)
+#                 print("SQLSTATE", err.sqlstate)
+#                 print("Message", err.msg)
+#                 return err.msg
+#             cursor.close()
+#             mydb.close()
 
-        return redirect(url_for('registerclass',table = table))
+#         return redirect(url_for('registerclass',table = table))
 
-    except Exception as e:
-        return e
+#     except Exception as e:
+#         return e
 
 @app.route('/facultyreg',methods = ['GET','POST'])
 def facultyreg():
@@ -985,7 +1091,7 @@ def classcreate(name):
         try:
             cursor = mydb.cursor()
 
-            query = f"CREATE TABLE `MyDatabase`.`{classname}` (`Id` VARCHAR(45) NULL,`name` VARCHAR(45) NULL ,`Image` LONGBLOB NULL);"
+            query = f"CREATE TABLE `MyDatabase`.`{classname}` (`Id` VARCHAR(45) NULL,`name` VARCHAR(45) NULL ,`Image` LONGBLOB NULL , `FaceData` LONGBLOB NULL);"
             cursor.execute(query)
             today = datetime.date.today()
             q= f"ALTER TABLE `MyDatabase`.`{classname}` ADD COLUMN `{today}` INT NULL DEFAULT 0;"

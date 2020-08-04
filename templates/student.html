@@ -58,7 +58,7 @@
                                   <label>Select Class:</label>
                                       <select class="form-control" name="classname">
                                         {% for class in classlist %}
-                                              {% if class != 'new_table'and class!='TeacherClasses' and class !='StudentRecord' and class !='TeacherRecord'%}
+                                              {% if  class!='TeacherClasses' and class !='StudentRecord' and class !='TeacherRecord'%}
                                                    <option> {{class}}</option>
 
                                                 {%endif%}

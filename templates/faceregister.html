@@ -22,6 +22,7 @@
 
         <label>Entry No:</label>
               <input type="hidden" class="form-control" name="image{{loop.index}}" value="{{image}}">
+              <input type="hidden" class="form-control" name="embedding{{loop.index}}" value="{{embeddings[loop.index -1]}}">
 
       <input type="text" class="form-control" name="id{{loop.index}}">
     </div>
