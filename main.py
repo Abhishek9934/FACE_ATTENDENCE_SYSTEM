@@ -130,7 +130,7 @@ def markattendace(id):
             query = f" SELECT name,FaceData,`{today}` FROM `{table}` "
             cursor.execute(query)
             res = cursor.fetchall()
-            print("reeeeeeeeeeeeesssssssss" , type(res[0][1]))
+          #  print("reeeeeeeeeeeeesssssssss" , type(res[0][1]))
 
             # embeddings = [pickle.loads(x[1]) for x in res]
             embeddings = []
@@ -185,20 +185,20 @@ def markattendace(id):
 
             for f in X:
                 face_encoding = getEmbeddings(f)
-                print("type fo face encodings",(face_encoding))
+               # print("type fo face encodings",(face_encoding))
                 mylist = []
                 for embedding in embeddings:
                     dist = distance(face_encoding , embedding)
                     mylist.append(dist)
 
-                print ("ududuud" , mylist)
+              #  print ("ududuud" , mylist)
 
                 arr = np.array(mylist)
                 minindex = np.argmin(arr)
 
   
                 if(mylist[minindex] < 90):
-                    print("identified face " ,namelist[minindex])
+                   # print("identified face " ,namelist[minindex])
 
                     mark_attendence(namelist[minindex], table)
 
@@ -331,37 +331,19 @@ def database(table):
                     s=s+r[i]
                 atper = (s/(len(r)-4)) * 100
 
-                r1 = list(r)
-                # print("heeleoll" , r1)
-
-                # r1[3] = (r1[3]).decode("utf-8")
-                #r1[2] = bytearray(r1[2])
-               # if (s == "<class 'bytes'>"):    
-                # x = r1[2]
-                # print(type(x))
-               # print(x[2])
-                # if x[1]==57 and x[2]==106:
-                #     # image = x.decode("utf-8")
-                #     print("jfjfjjf")
-                # else:
-                #     print("jfjj")
-                    # image = b64encode(x).decode("utf-8")
-                    #r1[2]=image
-               # print(r1[2])
-                # s = str(type(r1[2]))
-                # # print("sjssj" , s)
-                # if (s == "<class 'bytearray'>"):    
-                #     image = b64encode(r1[2]).decode("utf-8")
-                #     r1[2]=image
+                r1 = list(r)    
+                x = r1[2]
+                image = x.decode("utf-8")
+                r1[2]=image
                 r1.insert(4,atper)
                 result.append(r1)
-                print(r1)
+               # print(r1)
 
 
             col= cursor.column_names
             col = list(col) 
             col.insert(3,'Attendance %')
-            print(col)
+          #  print(col)
         except mysql.connector.Error as err:
             print(err)
             print("Error Code:", err.errno)
@@ -477,7 +459,7 @@ def update(table):
             emd = getEmbeddings(crop_face)
             emd = str(emd)
 
-            print(emd)
+         #   print(emd)
             # emd = pickle.dumps(emd)
 
             crop_image =  img[bounding_box[1]-20:bounding_box[1]+ bounding_box[3]+20,bounding_box[0]-20:bounding_box[0]+ bounding_box[2]+20]
@@ -629,30 +611,6 @@ def delete(table,id):
     return redirect(url_for('database',table= table))
 
 
-# @app.route('/export/<string:table>')
-# def export(table):
-#     try:
-#         mydb = CONNECTION()
-#         cursor = mydb.cursor()
-#         query = f"SELECT Id,name,{s} FROM `{table}`"
-#         cursor.execute(query)
-#         data = cursor.fetchall()
-#         # print(data)
-#         wb = Workbook()
-#         ws = wb.active
-#         ws.append(cursor.column_names)
-
-#         for row in data:
-#             ws.append(row)
-
-#         workbook_name = f"{table}"
-#         wb.save(workbook_name + ".xlsx")
-
-#         flash('Your File Has Been Downloaded.')
-#         return redirect(url_for('database', table=table))
-
-#     except Exception as e:
-#         return e
 
 @app.route('/teacherlogin',methods = ['GET','POST'])
 def teacherlogin():
@@ -920,7 +878,7 @@ def registerclass(table,id):
                     images.append(image)
 
 
-            print(facelist)
+          #  print(facelist)
             return render_template('faceregister.html',embeddings = facelist,l= len(detections),images = images ,table = table , id = id)
 
         return redirect(url_for('index'))
@@ -938,7 +896,7 @@ def register_all_face(table,id):
     try:
         if request.method == 'POST':
             form = request.form
-            print("formmmm",form)
+          #  print("formmmm",form)
             l = int(request.form['length'])
             # print(l)
             # # l = len(form)/2+1
@@ -954,7 +912,7 @@ def register_all_face(table,id):
                 namedata = form[name]
                 data = form[xx]
                 facedata = form[yy]
-                print(facedata)
+              #  print(facedata)
                 # crop_face = np.asarray(facedata)
                 # print("ccccccccccccccccccccccccccccccccccccccccccccc",crop_face)
 
@@ -986,35 +944,6 @@ def register_all_face(table,id):
 
 
 
-
-# @app.route('/registerstudent/<string:table>',methods= ['GET','POST'])
-# def registerstudent(table):
-#     try:
-#         if request.method == 'POST':
-#             id = request.form['id']
-#             name = request.form['name']
-
-#             mydb = CONNECTION()
-#             cursor = mydb.cursor()
-#             try:
-
-#                 query = f"INSERT INTO `{table}` (Id,name) VALUES (%s,%s)"
-
-#                 cursor.execute(query, (id, name,))
-#                 mydb.commit()
-#             except mysql.connector.Error as err:
-#                 print(err)
-#                 print("Error Code:", err.errno)
-#                 print("SQLSTATE", err.sqlstate)
-#                 print("Message", err.msg)
-#                 return err.msg
-#             cursor.close()
-#             mydb.close()
-
-#         return redirect(url_for('registerclass',table = table))
-
-#     except Exception as e:
-#         return e
 
 @app.route('/facultyreg',methods = ['GET','POST'])
 def facultyreg():
@@ -1166,7 +1095,6 @@ if __name__== "__main__":
     app.jinja_env.add_extension('jinja2.ext.loopcontrols')
 
     app.run(host='0.0.0.0',port=9999, debug=True , threaded =True)
-
 
 
 
