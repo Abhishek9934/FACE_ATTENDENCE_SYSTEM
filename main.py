@@ -191,13 +191,13 @@ def markattendace(id):
                     dist = distance(face_encoding , embedding)
                     mylist.append(dist)
 
-              #  print ("ududuud" , mylist)
+                print ("Attendance face distances" , mylist)
 
                 arr = np.array(mylist)
                 minindex = np.argmin(arr)
 
   
-                if(mylist[minindex] < 90):
+                if(mylist[minindex] < 100):
                    # print("identified face " ,namelist[minindex])
 
                     mark_attendence(namelist[minindex], table)
@@ -260,7 +260,7 @@ def login():
     try:
         if request.method == 'POST':
             session.pop('user',None)
-            if request.form['username'] != 'admin' or request.form['password'] != 'admin':
+            if request.form['username'] != 'admin' or request.form['password'] != 'is_admin_secure?':
                 flash('Invalid Credentials. Please try again.')
                 # return alert('Invalid Credentials. Please try again.')
             else:
@@ -304,8 +304,8 @@ def admin():
 
 
 ###
-@app.route('/classes/<string:table>')
-def database(table):
+@app.route('/classes/<string:table>/<string:id>')
+def database(table,id):
     try:
         mydb = CONNECTION()
         cursor = mydb.cursor()
@@ -351,15 +351,15 @@ def database(table):
             print("Message", err.msg)
             return err.msg
         
-        return render_template('database.html',att= result ,col= col,l=len(col) , classname = table)
+        return render_template('database.html',att= result ,col= col,l=len(col) ,id = id, classname = table)
 
 
     except Exception as e:
         return e
 
 ###
-@app.route('/insert/<string:table>' ,methods = ['POST'])
-def insert(table):
+@app.route('/insert/<string:table>/<string:tid>' ,methods = ['POST'])
+def insert(table,tid):
     try:
         if request.method == 'POST':
 
@@ -400,6 +400,8 @@ def insert(table):
                 success, encoded_image = cv2.imencode('.jpg', crop_image)
                 content2 = (encoded_image).tobytes()
                 image = b64encode(content2).decode("utf-8")
+            else:
+                return "No Face Detected.Please Upload a different Photograph."
 
             mydb = CONNECTION()
             cursor = mydb.cursor()
@@ -417,15 +419,15 @@ def insert(table):
             
             cursor.close()
             mydb.close()
-            return redirect(url_for('database',table = table))
+            return redirect(url_for('database',table = table,id = tid))
 
 
     except Exception as e:
         return e
 
 ####
-@app.route('/update/<string:table>', methods = ['POST','GET'])
-def update(table):
+@app.route('/update/<string:table>/<string:tid>', methods = ['POST','GET'])
+def update(table,tid):
     try:
         if request.method == 'POST':
             id = request.form['id']
@@ -468,6 +470,8 @@ def update(table):
                 success, encoded_image = cv2.imencode('.jpg', crop_image)
                 content2 = (encoded_image).tobytes()
                 image = b64encode(content2).decode("utf-8")
+            else:
+                return "No Face Detected.Please Upload a different Photograph."
 
             mydb = CONNECTION()
             cursor = mydb.cursor()
@@ -483,7 +487,7 @@ def update(table):
                 print("Message", err.msg)
                 return err.msg
             
-            return redirect(url_for('database',table = table))
+            return redirect(url_for('database',table = table,id =tid ))
 
     except Exception as e:
         return e
@@ -590,8 +594,8 @@ def delteacher(id):
 
 
 
-@app.route('/delete/<string:table>/<string:id>',methods = ['GET'])
-def delete(table,id):
+@app.route('/delete/<string:table>/<string:tid>/<string:id>',methods = ['GET'])
+def delete(table,id,tid):
     try:
         flash("Record Has been Deleted Successfully")
         mydb = CONNECTION()
@@ -608,7 +612,7 @@ def delete(table,id):
     cursor.close()
     mydb.close()
 
-    return redirect(url_for('database',table= table))
+    return redirect(url_for('database',table= table,id=tid))
 
 
 
@@ -755,44 +759,10 @@ def studentpage(table,id):
             return render_template('home.html',names= names, data = data , l= l,image = image,att = res ,tab = table)
         return redirect(url_for('index'))
 
-    except Exception as e:
+    except Exception as e: 
         return e
 
-@app.route('/join/<string:id>',methods = ['GET','POST'])
-def join(id):
-    try:
-        if request.method == 'POST':
-            # flash("Data Inserted Successfully")
-            table = request.form['classname']
-            classcode = request.form['classcode']
 
-
-            if classcode == table:
-                # print("woooooooh oooohhhhhh")
-                mydb = CONNECTION()
-                cursor = mydb.cursor()
-                try:
-                    cursor.execute(f"SELECT Name,Image FROM StudentRecord WHERE Id = %s",(id,))
-                    res = cursor.fetchall()
-                    name = res[0][0]
-                    data = res[0][1]
-                    query = f"INSERT INTO `{table}` (Id,name,Image) VALUES (%s,%s,%s)"
-
-                    cursor.execute(query, (id, name,data,))
-                    mydb.commit()
-                except mysql.connector.Error as err:
-                    print(err)
-                    print("Error Code:", err.errno)
-                    print("SQLSTATE", err.sqlstate)
-                    print("Message", err.msg)
-                    return err.msg
-                cursor.close()
-                mydb.close()
-
-        return redirect(url_for('studenthome',id = id))
-
-    except Exception as e:
-        return e
 
 @app.route('/register',methods = ['GET','POST'])
 def register():

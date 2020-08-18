@@ -1,7 +1,14 @@
+   {% include "header.html" %}
+<div class =" container   "  >
 
 
-{% include "header.html" %}
- <a class="btn pull-right btn-danger" style="font-size:20px;cursor:pointer" onclick="window.location.href='{{ url_for('logout')}}';" > Logout </a>
+ <a class="btn   pull-right btn-danger" style="font-size:20px;cursor:pointer" onclick="window.location.href='{{ url_for('logout')}}';" > Logout </a>
+
+<a class="btn  pull-right  btn-success" style="margin-right:20px; font-size:20px;cursor:pointer " onclick="window.location.href='/faculty/{{id}}';" > Home  </a>
+
+
+
+</div>
 
 <link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
 <div class="container">
@@ -9,6 +16,8 @@
         <h1> Welcome to {{classname}}</h1>
     </div>
 {% block body %}
+<br>
+
 <div class="well">
 
     <div class="">
@@ -50,8 +59,8 @@
 <!--                    <td>{{row.3}}</td>-->
                     <td>
 
-                <a href="/update/{{classname}}/{{row.0}}" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modaledit{{row.0}}">Edit</a>
-                <a href="/delete/{{classname}}/{{ row.0 }}" class="btn btn-danger btn-xs" onclick="return confirm('Are You Sure For Delete?')">Delete</a>
+			    <a href="/update/{{classname}}/{{row.0}}" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modaledit{{row.0}}">Edit</a>
+		<a href="/delete/{{classname}}/{{id}}/{{ row.0 }}" class="btn btn-danger btn-xs" onclick="return confirm('Are You Sure For Delete?')">Delete</a>
                     </td>
                 </tr>
                 
@@ -63,7 +72,7 @@
              <h4 class="modal-title">Update Information</h4>
          </div>
          <div class="modal-body">
-             <form action="/update/{{classname}}" method="POST" enctype="multipart/form-data">
+		 <form action="/update/{{classname}}/{{id}}" method="POST" enctype="multipart/form-data">
 
                 <div>
                     <label>New Entry No:</label>
@@ -106,7 +115,7 @@
             <h4 class="modal-title">Please Insert Data</h4>
          </div>
          <div class="modal-body">
-            <form action="/insert/{{classname}}" method="POST" enctype="multipart/form-data">
+		 <form action="/insert/{{classname}}/{{id}}" method="POST" enctype="multipart/form-data">
                <div class="form-group">
                   <label>Name:</label>
                   <input type="text" class="form-control" name="name" required="1">
