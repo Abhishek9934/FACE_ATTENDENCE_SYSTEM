@@ -32,9 +32,9 @@ def CONNECTION():
     mydb =  mysql.connector.connect(
 
         host="localhost",
-        user="admin",
-        passwd="Abhishek@6204",
-        database="MyDatabase",
+        user="**********",
+        passwd="***************",
+        database="*************",
         use_pure="True"
     )
     return mydb
@@ -269,7 +269,7 @@ def login():
     try:
         if request.method == 'POST':
             session.pop('user',None)
-            if request.form['username'] != 'admin' or request.form['password'] != 'is_admin_secure?':
+            if request.form['username'] != 'admin' or request.form['password'] != '*****************':
                 flash('Invalid Credentials. Please try again.')
                 # return alert('Invalid Credentials. Please try again.')
             else:
