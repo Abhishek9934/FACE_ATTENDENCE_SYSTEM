@@ -102,7 +102,16 @@ def index():
         return render_template('index.html')
 
     except Exception as e:
-        return enewteacher
+        return e
+
+
+@app.route('/about')
+def about():
+    try:
+        return render_template('doc.html')
+    except Exception as e:
+        return e
+
 
 ########################################### Loads the face recogniser #######################################################
 

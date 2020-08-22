@@ -59,9 +59,9 @@
 
 <div id="mySidenav" class="sidenav">
   <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-  <a href="#">About</a>
+  <a onclick = "window.location.href='{{ url_for('about')}}';" >About</a>
   <a data-toggle="modal" data-target="#student">Student Login</a>
-  <a href="#">Teacher Login</a>
+  <a data-toggle="modal" data-target= "#teacher" > Teacher Login</a>
   <a data-toggle="modal"  data-target="#myModal">Admin Login</a>
   <a onclick="window.location.href='{{ url_for('logout')}}';" > Logout </a>
 
