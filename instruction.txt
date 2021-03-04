@@ -1,0 +1,29 @@
+After MySQL Installation in your system and after creating the user for mysql
+
+Type the following command in your terminal to create the database:
+
+        
+           "mysql -u username -p < database.sql"
+
+
+---------------------------------------------------------------------------------------
+
+Running the web app locally on your machine:
+
+1.Download the Folder from google drive to your machine.
+
+2.Create a virtual environoment using "python3 -m venv env_name"
+
+3.Activate the virtual environment using "source env_name/bin/activate"
+
+4. Install all the dependencies using "pip install -r requirements.txt"
+
+5. Run the web app using command "python3 main.py"
+
+6. Visit the "http://0.0.0.0:9999" to view the web app
+
+
+
+(For running the web on Google Cloud Compute Engine please refer to Documentation file.)
+
+

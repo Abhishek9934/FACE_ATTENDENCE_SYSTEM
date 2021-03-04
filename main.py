@@ -2,28 +2,24 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import mysql.connector
 import os
 import datetime
-from openpyxl import Workbook
+
 from base64 import b64encode
-from keras_facenet import FaceNet
+
 import numpy as np
 import cv2
 from PIL import Image
 from mtcnn import MTCNN
-# import facenet as 
+
 import statistics
 import pickle
-
+from keras_facenet import FaceNet
 from keras.models import load_model
 
 
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import Normalizer
-from sklearn.svm import SVC
 
 
 embedder = MTCNN()
-# detector = FaceNet()
+
 
 facenet_model = load_model('facenet_keras.h5')
 print('Loaded Model')
@@ -32,9 +28,9 @@ def CONNECTION():
     mydb =  mysql.connector.connect(
 
         host="localhost",
-        user="**********",
-        passwd="***************",
-        database="*************",
+        user="root",    #replace here with your own username of the MySQL database
+        passwd="password",   #replace here with your own password of the MySQL database 
+        database="MyDatabase",
         use_pure="True"
     )
     return mydb
@@ -269,7 +265,7 @@ def login():
     try:
         if request.method == 'POST':
             session.pop('user',None)
-            if request.form['username'] != 'admin' or request.form['password'] != '*****************':
+            if request.form['username'] != 'admin' or request.form['password'] != 'is_admin_secure?':
                 flash('Invalid Credentials. Please try again.')
                 # return alert('Invalid Credentials. Please try again.')
             else:
