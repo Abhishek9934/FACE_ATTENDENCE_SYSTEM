@@ -19,8 +19,8 @@ This documentation is to help you regarding each step of usage. Please go throug
 
 
 #### In the teacher panel faculty can create his new class / delete his existing class / register a new class / mark daily attendance.
-                  <img class="thumbnail" src="static/teacherpane.png" style="width: 100%">
-                <img class="thumbnail" src="static/create.png" style="width: 100%">
+ <img class="thumbnail" src="static/teacherpane.png" style="width: 100%">
+ <img class="thumbnail" src="static/create.png" style="width: 100%">
 
  
 
